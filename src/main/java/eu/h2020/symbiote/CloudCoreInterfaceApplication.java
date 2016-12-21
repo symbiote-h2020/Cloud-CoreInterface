@@ -13,7 +13,7 @@ import org.springframework.cloud.sleuth.sampler.AlwaysSampler;
 /**
  * Created by mateuszl on 22.09.2016.
  */
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 @SpringBootApplication
 public class CloudCoreInterfaceApplication {
 
@@ -29,9 +29,9 @@ public class CloudCoreInterfaceApplication {
         }
     }
 
-    @Bean
-    public AlwaysSampler defaultSampler() {
-        return new AlwaysSampler();
-    }
+//    @Bean
+//    public AlwaysSampler defaultSampler() {
+//        return new AlwaysSampler();
+//    }
 
 }
