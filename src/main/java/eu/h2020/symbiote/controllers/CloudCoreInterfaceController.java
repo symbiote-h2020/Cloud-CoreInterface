@@ -1,5 +1,6 @@
 package eu.h2020.symbiote.controllers;
 
+import eu.h2020.symbiote.model.Resource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
@@ -18,35 +19,70 @@ public class CloudCoreInterfaceController {
 
     @RequestMapping(method = RequestMethod.GET,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<String> getRdfResources(@PathVariable("platformId") String platformId) {
-        return new ResponseEntity<String>("Resources listing: NYI", HttpStatus.NOT_IMPLEMENTED);
+    public ResponseEntity<?> getRdfResources(@PathVariable("platformId") String platformId) {
+        return new ResponseEntity<String>("RDF Resources listing: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<String> createRdfResources(@PathVariable("platformId") String platformId,
+    public ResponseEntity<?> createRdfResources(@PathVariable("platformId") String platformId,
                                                      @RequestBody String rdfResources) {
-        return new ResponseEntity<String>("Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<String>("RDF Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
     @RequestMapping(method = RequestMethod.GET,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
-    public ResponseEntity<String> getRdfResource(@PathVariable("platformId") String platformId,
+    public ResponseEntity<?> getRdfResource(@PathVariable("platformId") String platformId,
+                                                 @PathVariable("resourceId") String resourceId) {
+        return new ResponseEntity<String>("RDF Resource listing: NYI", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT,
+            value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
+    public ResponseEntity<?> modifyRdfResource(@PathVariable("platformId") String platformId,
+                                                    @PathVariable("resourceId") String resourceId,
+                                                    @RequestBody String rdfResources) {
+        return new ResponseEntity<String>("RDF Resource modify: NYI", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
+    public ResponseEntity<?> deleteRdfResource(@PathVariable("platformId") String platformId,
+                                                    @PathVariable("resourceId") String resourceId) {
+        return new ResponseEntity<String>("RDF Resource delete: NYI", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            value = URI_PREFIX + "/platforms/{platformId}/resources")
+    public ResponseEntity<?> getResources(@PathVariable("platformId") String platformId) {
+        return new ResponseEntity<String>("Resources listing: NYI", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            value = URI_PREFIX + "/platforms/{platformId}/resources")
+    public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
+                                                     @RequestBody Resource resource) {
+        return new ResponseEntity<String>("Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
+    public ResponseEntity<?> getResource(@PathVariable("platformId") String platformId,
                                                  @PathVariable("resourceId") String resourceId) {
         return new ResponseEntity<String>("Resource listing: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
     @RequestMapping(method = RequestMethod.PUT,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
-    public ResponseEntity<String> modifyRdfResource(@PathVariable("platformId") String platformId,
+            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
+    public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
                                                     @PathVariable("resourceId") String resourceId,
-                                                    @RequestBody String rdfResources) {
+                                                    @RequestBody Resource resource) {
         return new ResponseEntity<String>("Resource modify: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
     @RequestMapping(method = RequestMethod.DELETE,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
-    public ResponseEntity<String> deleteRdfResource(@PathVariable("platformId") String platformId,
+            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
+    public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
                                                     @PathVariable("resourceId") String resourceId) {
         return new ResponseEntity<String>("Resource delete: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
