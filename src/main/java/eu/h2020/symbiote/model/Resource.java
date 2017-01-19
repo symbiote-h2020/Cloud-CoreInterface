@@ -13,6 +13,8 @@ public class Resource {
     private List<String> observedProperties;
     private String resourceURL;
     private Location location;
+    private String featureOfInterest;
+    private String platformId;
 
     public Resource() {
     }
@@ -71,5 +73,36 @@ public class Resource {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public String getFeatureOfInterest() {
+        return featureOfInterest;
+    }
+
+    public void setFeatureOfInterest(String featureOfInterest) {
+        this.featureOfInterest = featureOfInterest;
+    }
+
+    public String getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
+    }
+
+    @Override
+    public String toString() {
+        return "Resource{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", owner='" + owner + '\'' +
+                ", description='" + description + '\'' +
+                ", observedProperties=" + observedProperties +
+                ", resourceURL='" + resourceURL + '\'' +
+                ", location=" + location +
+                ", featureOfInterest='" + featureOfInterest + '\'' +
+                ", platformId='" + platformId + '\'' +
+                '}';
     }
 }

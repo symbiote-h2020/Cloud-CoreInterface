@@ -62,4 +62,16 @@ public class Location {
     public void setAltitude(double altitude) {
         this.altitude = altitude;
     }
+
+    @Override
+    public String toString() {
+        return "Location{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", altitude=" + altitude +
+                '}';
+    }
 }

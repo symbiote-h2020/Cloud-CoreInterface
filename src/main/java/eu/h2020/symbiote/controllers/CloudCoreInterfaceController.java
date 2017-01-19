@@ -1,8 +1,12 @@
 package eu.h2020.symbiote.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.model.Resource;
+import eu.h2020.symbiote.model.ResourceCreationResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +20,13 @@ public class CloudCoreInterfaceController {
     private static final String URI_PREFIX = "/cloudCoreInterface/v1";
 
     public static Log log = LogFactory.getLog(CloudCoreInterfaceController.class);
+
+    private final RabbitManager rabbitManager;
+
+    @Autowired
+    public CloudCoreInterfaceController(RabbitManager rabbitManager){
+        this.rabbitManager = rabbitManager;
+    }
 
     @RequestMapping(method = RequestMethod.GET,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
@@ -62,7 +73,16 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
                                                      @RequestBody Resource resource) {
-        return new ResponseEntity<String>("Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
+        resource.setPlatformId(platformId);
+        ResourceCreationResponse response = rabbitManager.sendResourceCreationRequest(resource);
+
+        //Timeout or exception on our side
+        if (response == null)
+            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
+            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET,
