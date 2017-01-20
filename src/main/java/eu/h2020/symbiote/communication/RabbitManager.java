@@ -123,7 +123,7 @@ public class RabbitManager {
 
             this.channel.basicPublish(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, props, message.getBytes());
             while (true){
-                QueueingConsumer.Delivery delivery = consumer.nextDelivery(30000);
+                QueueingConsumer.Delivery delivery = consumer.nextDelivery(20000);
                 if (delivery == null)
                     return null;
 
@@ -135,7 +135,6 @@ public class RabbitManager {
 
             ObjectMapper mapper = new ObjectMapper();
             ResourceCreationResponse response =  mapper.readValue(responseMsg, ResourceCreationResponse.class);
-            System.out.println(response);
             return response;
         } catch (IOException e) {
             e.printStackTrace();

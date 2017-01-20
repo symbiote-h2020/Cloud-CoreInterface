@@ -45,28 +45,28 @@ public class CloudCoreInterfaceApplication {
         public void run(String... args) throws Exception {
             this.rabbitManager.initCommunication();
 
-            Location location = new Location();
-            location.setDescription("This is a test location");
-            location.setName("Test location");
-            location.setAltitude(100);
-            location.setLongitude(20.3);
-            location.setLatitude(55.9);
-
-            List<String> observedProperties = new ArrayList<>();
-            observedProperties.add("Property 1");
-            observedProperties.add("Property 2");
-            observedProperties.add("Property 3");
-
-            Resource resource = new Resource();
-            resource.setName("Test resource");
-            resource.setDescription("This is a test resource");
-            resource.setFeatureOfInterest("Test FOI");
-            resource.setOwner("Test owner");
-            resource.setResourceURL("http://foo.bar");
-            resource.setLocation(location);
-            resource.setObservedProperties(observedProperties);
-
-            this.rabbitManager.sendResourceCreationRequest(resource);
+//            Location location = new Location();
+//            location.setDescription("This is a test location");
+//            location.setName("Test location");
+//            location.setAltitude(100);
+//            location.setLongitude(20.3);
+//            location.setLatitude(55.9);
+//
+//            List<String> observedProperties = new ArrayList<>();
+//            observedProperties.add("Property 1");
+//            observedProperties.add("Property 2");
+//            observedProperties.add("Property 3");
+//
+//            Resource resource = new Resource();
+//            resource.setName("Test resource");
+//            resource.setDescription("This is a test resource");
+//            resource.setFeatureOfInterest("Test FOI");
+//            resource.setOwner("Test owner");
+//            resource.setResourceURL("http://foo.bar");
+//            resource.setLocation(location);
+//            resource.setObservedProperties(observedProperties);
+//
+//            this.rabbitManager.sendResourceCreationRequest(resource);
 
 
         }

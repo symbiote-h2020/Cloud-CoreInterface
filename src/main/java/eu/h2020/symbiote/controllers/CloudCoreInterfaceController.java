@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Created by jawora on 21.12.16.
+ * REST endpoints definition.
  */
 
 @RestController
@@ -75,6 +75,8 @@ public class CloudCoreInterfaceController {
                                                      @RequestBody Resource resource) {
         resource.setPlatformId(platformId);
         ResourceCreationResponse response = rabbitManager.sendResourceCreationRequest(resource);
+
+        System.out.println(response);
 
         //Timeout or exception on our side
         if (response == null)
