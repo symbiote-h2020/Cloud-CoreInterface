@@ -3,6 +3,7 @@ package eu.h2020.symbiote;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.model.Location;
 import eu.h2020.symbiote.model.Resource;
+import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -47,10 +48,11 @@ public class CloudCoreInterfaceApplication {
 
 //            Location location = new Location();
 //            location.setDescription("This is a test location");
-//            location.setName("Test location");
+//            location.setName("Changed Test location");
 //            location.setAltitude(100);
 //            location.setLongitude(20.3);
 //            location.setLatitude(55.9);
+//            location.setId("5885df6b3999e538c88a5ba8");
 //
 //            List<String> observedProperties = new ArrayList<>();
 //            observedProperties.add("Property 1");
@@ -58,17 +60,20 @@ public class CloudCoreInterfaceApplication {
 //            observedProperties.add("Property 3");
 //
 //            Resource resource = new Resource();
-//            resource.setName("Test resource");
+//            resource.setName("Changed Resource to delete");
 //            resource.setDescription("This is a test resource");
 //            resource.setFeatureOfInterest("Test FOI");
 //            resource.setOwner("Test owner");
 //            resource.setResourceURL("http://foo.bar");
 //            resource.setLocation(location);
 //            resource.setObservedProperties(observedProperties);
+//            resource.setPlatformId("TestPlatformId");
+//            resource.setId("5885df6b3999e538c88a5ba9");
 //
-//            this.rabbitManager.sendResourceCreationRequest(resource);
-
-
+//            RpcResourceResponse response = this.rabbitManager.sendResourceCreationRequest(resource);
+////            RpcResourceResponse response = this.rabbitManager.sendResourceRemovalRequest(resource);
+////            RpcResourceResponse response = this.rabbitManager.sendResourceModificationRequest(resource);
+//            System.out.println(response);
         }
     }
 

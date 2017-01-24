@@ -1,13 +1,13 @@
 package eu.h2020.symbiote.model;
 
 /**
- * Class used as a response to RPC call requesting resource creation
+ * Class used as a response to RPC call requesting resource operation
  */
-public class ResourceCreationResponse {
+public class RpcResourceResponse {
     private int status;
     private Resource resource;
 
-    public ResourceCreationResponse() {
+    public RpcResourceResponse() {
     }
 
     public int getStatus() {
@@ -28,7 +28,7 @@ public class ResourceCreationResponse {
 
     @Override
     public String toString() {
-        return "ResourceCreationResponse{" +
+        return "RpcResourceResponse{" +
                 "status=" + status +
                 ", resource=" + resource +
                 '}';

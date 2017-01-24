@@ -1,9 +1,8 @@
 package eu.h2020.symbiote.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.ResourceCreationResponse;
+import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,7 @@ public class CloudCoreInterfaceController {
     public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
                                                      @RequestBody Resource resource) {
         resource.setPlatformId(platformId);
-        ResourceCreationResponse response = rabbitManager.sendResourceCreationRequest(resource);
+        RpcResourceResponse response = rabbitManager.sendResourceCreationRequest(resource);
 
         System.out.println(response);
 
@@ -99,14 +98,37 @@ public class CloudCoreInterfaceController {
     public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
                                                     @PathVariable("resourceId") String resourceId,
                                                     @RequestBody Resource resource) {
-        return new ResponseEntity<String>("Resource modify: NYI", HttpStatus.NOT_IMPLEMENTED);
+        resource.setPlatformId(platformId);
+        RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
+
+        System.out.println(response);
+
+        //Timeout or exception on our side
+        if (response == null)
+            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
+            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
     public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
                                                     @PathVariable("resourceId") String resourceId) {
-        return new ResponseEntity<String>("Resource delete: NYI", HttpStatus.NOT_IMPLEMENTED);
+        Resource resource = new Resource();
+        resource.setPlatformId(platformId);
+        RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
+
+        System.out.println(response);
+
+        //Timeout or exception on our side
+        if (response == null)
+            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
+            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
     }
 
 
