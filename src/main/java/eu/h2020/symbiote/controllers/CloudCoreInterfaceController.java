@@ -99,6 +99,7 @@ public class CloudCoreInterfaceController {
                                                     @PathVariable("resourceId") String resourceId,
                                                     @RequestBody Resource resource) {
         resource.setPlatformId(platformId);
+        resource.setId(resourceId);
         RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
 
         System.out.println(response);
@@ -117,6 +118,7 @@ public class CloudCoreInterfaceController {
     public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
                                                     @PathVariable("resourceId") String resourceId) {
         Resource resource = new Resource();
+        resource.setId(resourceId);
         resource.setPlatformId(platformId);
         RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
 
@@ -127,8 +129,8 @@ public class CloudCoreInterfaceController {
             return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
 
         if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
+            return new ResponseEntity<String>("", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<String>("", HttpStatus.OK);
     }
 
 
