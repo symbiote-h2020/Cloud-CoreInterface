@@ -179,7 +179,7 @@ public class RabbitManager {
             RpcResourceResponse response = mapper.readValue(responseMsg, RpcResourceResponse.class);
             return response;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed (un)marshalling of rpc resource message");
         }
         return null;
     }

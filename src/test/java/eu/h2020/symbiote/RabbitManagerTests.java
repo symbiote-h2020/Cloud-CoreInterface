@@ -83,4 +83,19 @@ public class RabbitManagerTests {
         assertEquals(200, response.getStatus());
     }
 
+    @Test
+    public void testSendRpcResourceMessage_failedUnmarshalling() {
+        String jsonResponse = "{" +
+                "\"stat\" : \"200\"" +
+                "}";
+
+        RabbitManager rabbitManager = spy(new RabbitManager());
+        doReturn(jsonResponse).when(rabbitManager).sendRpcMessage(any(), any(), any());
+
+        Resource resource = new Resource();
+        RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
+
+        assertNull(response);
+    }
+
 }
