@@ -86,15 +86,13 @@ public class CloudCoreInterfaceController {
         resource.setPlatformId(platformId);
         RpcResourceResponse response = rabbitManager.sendResourceCreationRequest(resource);
 
-        System.out.println(response);
+        log.debug(response);
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
-        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<>(response.getResource(), HttpStatus.OK);
+        return new ResponseEntity<>(response.getResource(), HttpStatus.valueOf(response.getStatus()));
     }
 
     /**
@@ -116,15 +114,13 @@ public class CloudCoreInterfaceController {
         resource.setId(resourceId);
         RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
 
-        System.out.println(response);
+        log.debug(response);
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
-        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<>(response.getResource(), HttpStatus.OK);
+        return new ResponseEntity<>(response.getResource(), HttpStatus.valueOf(response.getStatus()));
     }
 
     /**
@@ -143,15 +139,13 @@ public class CloudCoreInterfaceController {
         resource.setPlatformId(platformId);
         RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
 
-        System.out.println(response);
+        log.debug(response);
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
-        if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<>("", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<>("", HttpStatus.OK);
+        return new ResponseEntity<>(null, HttpStatus.valueOf(response.getStatus()));
     }
 
 

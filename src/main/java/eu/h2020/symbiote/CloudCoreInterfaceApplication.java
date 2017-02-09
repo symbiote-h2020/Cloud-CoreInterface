@@ -48,35 +48,6 @@ public class CloudCoreInterfaceApplication {
         @Override
         public void run(String... args) throws Exception {
             this.rabbitManager.initCommunication();
-
-//            Location location = new Location();
-//            location.setDescription("This is a test location");
-//            location.setName("Changed Test location");
-//            location.setAltitude(100);
-//            location.setLongitude(20.3);
-//            location.setLatitude(55.9);
-//            location.setId("5885df6b3999e538c88a5ba8");
-//
-//            List<String> observedProperties = new ArrayList<>();
-//            observedProperties.add("Property 1");
-//            observedProperties.add("Property 2");
-//            observedProperties.add("Property 3");
-//
-//            Resource resource = new Resource();
-//            resource.setName("Changed Resource to delete");
-//            resource.setDescription("This is a test resource");
-//            resource.setFeatureOfInterest("Test FOI");
-//            resource.setOwner("Test owner");
-//            resource.setResourceURL("http://foo.bar");
-//            resource.setLocation(location);
-//            resource.setObservedProperties(observedProperties);
-//            resource.setPlatformId("TestPlatformId");
-//            resource.setId("5885df6b3999e538c88a5ba9");
-//
-//            RpcResourceResponse response = this.rabbitManager.sendResourceCreationRequest(resource);
-////            RpcResourceResponse response = this.rabbitManager.sendResourceRemovalRequest(resource);
-////            RpcResourceResponse response = this.rabbitManager.sendResourceModificationRequest(resource);
-//            System.out.println(response);
         }
     }
 

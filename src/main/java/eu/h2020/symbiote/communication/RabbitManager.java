@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.model.Resource;
 import eu.h2020.symbiote.model.RpcResourceResponse;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeoutException;
  */
 @Component
 public class RabbitManager {
+    private static Log log = LogFactory.getLog(RabbitManager.class);
 
     @Value("${rabbit.host}")
     private String rabbitHost;
@@ -119,7 +122,7 @@ public class RabbitManager {
      */
     private RpcResourceResponse sendRpcMessage(String exchangeName, String routingKey, Resource resource) {
         try {
-            System.out.println("Sending message...");
+            log.debug("Sending message...");
 
             String message;
             ObjectMapper mapper = new ObjectMapper();
