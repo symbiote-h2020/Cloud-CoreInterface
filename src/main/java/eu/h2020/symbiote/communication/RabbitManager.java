@@ -14,8 +14,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Bean used to manage internal communication using RabbitMQ.
- * It is responsible for declaring exchanges and using routing keys from centralized config server.
+ * Class used for all internal communication using RabbitMQ AMQP implementation.
+ * It works as a Spring Bean, and should be used via autowiring.
+ * <p>
+ * RabbitManager uses properties taken from CoreConfigServer to set up communication (exchange parameters, routing keys etc.)
  */
 @Component
 public class RabbitManager {
@@ -57,7 +59,9 @@ public class RabbitManager {
     private Channel channel;
 
     /**
-     * Initialization method.
+     * Method used to initialise RabbitMQ connection and declare all required exchanges.
+     * This method should be called once, after bean initialization (so that properties from CoreConfigServer are obtained),
+     * but before using RabbitManager to send any message.
      */
     public void initCommunication() {
         try {
@@ -85,7 +89,7 @@ public class RabbitManager {
     }
 
     /**
-     * Cleanup method
+     * Cleanup method, used to close RabbitMQ channel and connection.
      */
     @PreDestroy
     private void cleanup() {
@@ -101,14 +105,18 @@ public class RabbitManager {
         }
     }
 
-    private void sendMessage(String exchange, String routingKey, String message) {
-        try {
-            this.channel.basicPublish(exchange, routingKey, null, message.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Method used to send message via RPC (Remote Procedure Call) pattern.
+     * In this implementation it covers asynchronous Rabbit communication with synchronous one, as it is used by conventional REST facade.
+     * Before sending a message, a temporary response queue is declared and its name is passed along with the message.
+     * When a consumer handles the message, it returns the result via the response queue.
+     * Since this is a synchronous pattern, it uses timeout of 20 seconds. If the response doesn't come in that time, the method returns with null result.
+     *
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param resource     resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
     private RpcResourceResponse sendRpcMessage(String exchangeName, String routingKey, Resource resource) {
         try {
             System.out.println("Sending message...");

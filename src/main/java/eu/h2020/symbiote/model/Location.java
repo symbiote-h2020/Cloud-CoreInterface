@@ -1,7 +1,7 @@
 package eu.h2020.symbiote.model;
 
 /**
- * Created by jawora on 21.12.16.
+ * POJO describing a location.
  */
 public class Location {
     private String id;
@@ -11,6 +11,9 @@ public class Location {
     private double longitude;
     private double altitude;
 
+    /**
+     * Default empty constructor.
+     */
     public Location() {
 
     }

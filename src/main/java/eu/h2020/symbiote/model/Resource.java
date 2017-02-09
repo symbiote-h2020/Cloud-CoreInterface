@@ -3,7 +3,7 @@ package eu.h2020.symbiote.model;
 import java.util.List;
 
 /**
- * Created by jawora on 21.12.16.
+ * POJO describing a resource.
  */
 public class Resource {
     private String id;
@@ -16,6 +16,9 @@ public class Resource {
     private String featureOfInterest;
     private String platformId;
 
+    /**
+     * Default empty constructor.
+     */
     public Resource() {
     }
 

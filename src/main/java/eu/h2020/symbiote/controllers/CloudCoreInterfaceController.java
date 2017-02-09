@@ -11,9 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST endpoints definition.
+ * Class defining all REST endpoints.
+ * <p>
+ * CloudCoreInterface, as the name suggests, is just an interface, therefore it forwards all requests to modules responsible
+ * for handling them via RabbitMQ.
  */
-
 @RestController
 public class CloudCoreInterfaceController {
     private static final String URI_PREFIX = "/cloudCoreInterface/v1";
@@ -22,56 +24,65 @@ public class CloudCoreInterfaceController {
 
     private final RabbitManager rabbitManager;
 
+    /**
+     * Class constructor which autowires RabbitManager bean.
+     *
+     * @param rabbitManager RabbitManager bean
+     */
     @Autowired
-    public CloudCoreInterfaceController(RabbitManager rabbitManager){
+    public CloudCoreInterfaceController(RabbitManager rabbitManager) {
         this.rabbitManager = rabbitManager;
     }
 
-    @RequestMapping(method = RequestMethod.GET,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<?> getRdfResources(@PathVariable("platformId") String platformId) {
-        return new ResponseEntity<String>("RDF Resources listing: NYI", HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    /**
+     * Endpoint for creating resource using RDF description.
+     * <p>
+     * Currently not implemented.
+     */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity<?> createRdfResources(@PathVariable("platformId") String platformId,
-                                                     @RequestBody String rdfResources) {
-        return new ResponseEntity<String>("RDF Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
+                                                @RequestBody String rdfResources) {
+        return new ResponseEntity<>("RDF Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
-    @RequestMapping(method = RequestMethod.GET,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
-    public ResponseEntity<?> getRdfResource(@PathVariable("platformId") String platformId,
-                                                 @PathVariable("resourceId") String resourceId) {
-        return new ResponseEntity<String>("RDF Resource listing: NYI", HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    /**
+     * Endpoint for modifying resource using RDF description.
+     * <p>
+     * Currently not implemented.
+     */
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
     public ResponseEntity<?> modifyRdfResource(@PathVariable("platformId") String platformId,
-                                                    @PathVariable("resourceId") String resourceId,
-                                                    @RequestBody String rdfResources) {
-        return new ResponseEntity<String>("RDF Resource modify: NYI", HttpStatus.NOT_IMPLEMENTED);
+                                               @PathVariable("resourceId") String resourceId,
+                                               @RequestBody String rdfResources) {
+        return new ResponseEntity<>("RDF Resource modify: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
+    /**
+     * Endpoint for deleting resource using RDF description.
+     * <p>
+     * Currently not implemented.
+     */
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources/{resourceId}")
     public ResponseEntity<?> deleteRdfResource(@PathVariable("platformId") String platformId,
-                                                    @PathVariable("resourceId") String resourceId) {
-        return new ResponseEntity<String>("RDF Resource delete: NYI", HttpStatus.NOT_IMPLEMENTED);
+                                               @PathVariable("resourceId") String resourceId) {
+        return new ResponseEntity<>("RDF Resource delete: NYI", HttpStatus.NOT_IMPLEMENTED);
     }
 
-    @RequestMapping(method = RequestMethod.GET,
-            value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity<?> getResources(@PathVariable("platformId") String platformId) {
-        return new ResponseEntity<String>("Resources listing: NYI", HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    /**
+     * Endpoint for creating resource using JSON description.
+     *
+     * @param platformId ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
+     *                   it will be overwritten by path parameter
+     * @param resource   resource that is to be registered
+     * @return created resource (with resourceId filled) or null along with appropriate error HTTP status code
+     */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
-                                                     @RequestBody Resource resource) {
+                                             @RequestBody Resource resource) {
         resource.setPlatformId(platformId);
         RpcResourceResponse response = rabbitManager.sendResourceCreationRequest(resource);
 
@@ -79,25 +90,28 @@ public class CloudCoreInterfaceController {
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
 
         if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
+            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<>(response.getResource(), HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET,
-            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
-    public ResponseEntity<?> getResource(@PathVariable("platformId") String platformId,
-                                                 @PathVariable("resourceId") String resourceId) {
-        return new ResponseEntity<String>("Resource listing: NYI", HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    /**
+     * Endpoint for modifying resource using JSON description.
+     *
+     * @param platformId ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
+     *                   it will be overwritten by path parameter
+     * @param resourceId ID of a resource to modify; if resource ID is specified in Resource body object,
+     *                   it will be overwritten by path parameter
+     * @param resource   resource that is to be modified
+     * @return modified resource or null along with appropriate error HTTP status code
+     */
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
     public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
-                                                    @PathVariable("resourceId") String resourceId,
-                                                    @RequestBody Resource resource) {
+                                            @PathVariable("resourceId") String resourceId,
+                                            @RequestBody Resource resource) {
         resource.setPlatformId(platformId);
         resource.setId(resourceId);
         RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
@@ -106,17 +120,24 @@ public class CloudCoreInterfaceController {
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
 
         if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<String>("{}", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<Resource>(response.getResource(), HttpStatus.OK);
+            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<>(response.getResource(), HttpStatus.OK);
     }
 
+    /**
+     * Endpoint for removing resource using JSON description.
+     *
+     * @param platformId ID of a platform that resource belongs to
+     * @param resourceId ID of a resource to remove
+     * @return empty body with appropriate operation HTTP status code
+     */
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
     public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
-                                                    @PathVariable("resourceId") String resourceId) {
+                                            @PathVariable("resourceId") String resourceId) {
         Resource resource = new Resource();
         resource.setId(resourceId);
         resource.setPlatformId(platformId);
@@ -126,11 +147,11 @@ public class CloudCoreInterfaceController {
 
         //Timeout or exception on our side
         if (response == null)
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
 
         if (response.getStatus() != org.apache.http.HttpStatus.SC_OK)
-            return new ResponseEntity<String>("", HttpStatus.valueOf(response.getStatus()));
-        return new ResponseEntity<String>("", HttpStatus.OK);
+            return new ResponseEntity<>("", HttpStatus.valueOf(response.getStatus()));
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
 

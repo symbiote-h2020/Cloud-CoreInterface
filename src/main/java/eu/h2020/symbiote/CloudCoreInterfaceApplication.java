@@ -20,7 +20,10 @@ import java.util.List;
 
 
 /**
- * Created by mateuszl on 22.09.2016.
+ * Cloud-Core Interface module's entry point.
+ * <p>
+ * Cloud-Core Interface is a southbound interface for accessing symbIoTe platform.
+ * It allows platform owners to register their resources.
  */
 @EnableDiscoveryClient
 @SpringBootApplication

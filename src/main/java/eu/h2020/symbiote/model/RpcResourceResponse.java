@@ -7,6 +7,9 @@ public class RpcResourceResponse {
     private int status;
     private Resource resource;
 
+    /**
+     * Default empty constructor.
+     */
     public RpcResourceResponse() {
     }
 
