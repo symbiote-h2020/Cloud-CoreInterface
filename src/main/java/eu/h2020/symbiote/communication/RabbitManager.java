@@ -1,6 +1,5 @@
 package eu.h2020.symbiote.communication;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.model.Resource;
@@ -117,16 +116,12 @@ public class RabbitManager {
      *
      * @param exchangeName name of the exchange to send message to
      * @param routingKey   routing key to send message to
-     * @param resource     resource to be sent
+     * @param message      message to be sent
      * @return response from the consumer or null if timeout occurs
      */
-    private RpcResourceResponse sendRpcMessage(String exchangeName, String routingKey, Resource resource) {
+    public String sendRpcMessage(String exchangeName, String routingKey, String message) {
         try {
             log.debug("Sending message...");
-
-            String message;
-            ObjectMapper mapper = new ObjectMapper();
-            message = mapper.writeValueAsString(resource);
 
             String replyQueueName = this.channel.queueDeclare().getQueue();
 
@@ -143,7 +138,7 @@ public class RabbitManager {
             String responseMsg = null;
 
             this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
-            while (true){
+            while (true) {
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery(20000);
                 if (delivery == null)
                     return null;
@@ -154,12 +149,36 @@ public class RabbitManager {
                 }
             }
 
+            return responseMsg;
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param resource     resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public RpcResourceResponse sendRpcResourceMessage(String exchangeName, String routingKey, Resource resource) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(resource);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
             mapper = new ObjectMapper();
-            RpcResourceResponse response =  mapper.readValue(responseMsg, RpcResourceResponse.class);
+            RpcResourceResponse response = mapper.readValue(responseMsg, RpcResourceResponse.class);
             return response;
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return null;
@@ -172,7 +191,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, a resource object containing assigned ID
      */
     public RpcResourceResponse sendResourceCreationRequest(Resource resource) {
-            return sendRpcMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, resource);
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, resource);
     }
 
     /**
@@ -182,7 +201,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, a resource object
      */
     public RpcResourceResponse sendResourceRemovalRequest(Resource resource) {
-        return sendRpcMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, resource);
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, resource);
     }
 
     /**
@@ -192,6 +211,6 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, a resource object
      */
     public RpcResourceResponse sendResourceModificationRequest(Resource resource) {
-        return sendRpcMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, resource);
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, resource);
     }
 }
