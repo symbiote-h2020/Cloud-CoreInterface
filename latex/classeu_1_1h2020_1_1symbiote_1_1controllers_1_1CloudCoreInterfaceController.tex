@@ -1,0 +1,159 @@
+\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController}{}\section{eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller Class Reference}
+\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController}\index{eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller@{eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller}}
+
+
+Collaboration diagram for eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=238pt]{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a19222abf4496aac62c037451b02c7f31}{Cloud\+Core\+Interface\+Controller} (\hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager}{Rabbit\+Manager} rabbit\+Manager)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a86e93a8ba38be222f570d850ca2cfed0}{create\+Rdf\+Resources} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Request\+Body String rdf\+Resources)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_add9d780c27d48dfce1c84537b3e2963e}{modify\+Rdf\+Resource} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String resource\+Id,@Request\+Body String rdf\+Resources)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a1470a53850a203a85db8f0b93d18c362}{delete\+Rdf\+Resource} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String resource\+Id)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9519d747900350a3e05f859a37c53780}{create\+Resources} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Request\+Body \hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_abb8609ab8c4a98d633a12d137e48ece8}{modify\+Resource} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String resource\+Id,@Request\+Body \hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+\item 
+Response\+Entity$<$?$>$ \hyperlink{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9697cf03798b509844d2dc675c50e463}{delete\+Resource} (@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String platform\+Id,@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String resource\+Id)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static Log {\bfseries log} = Log\+Factory.\+get\+Log(Cloud\+Core\+Interface\+Controller.\+class)\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a984b8c1127a0c63545f1633b53ab8b00}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a984b8c1127a0c63545f1633b53ab8b00}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Class defining all R\+E\+ST endpoints. 
+
+Cloud\+Core\+Interface, as the name suggests, is just an interface, therefore it forwards all requests to modules responsible for handling them via Rabbit\+MQ. 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!Cloud\+Core\+Interface\+Controller@{Cloud\+Core\+Interface\+Controller}}
+\index{Cloud\+Core\+Interface\+Controller@{Cloud\+Core\+Interface\+Controller}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{Cloud\+Core\+Interface\+Controller(\+Rabbit\+Manager rabbit\+Manager)}{CloudCoreInterfaceController(RabbitManager rabbitManager)}}]{\setlength{\rightskip}{0pt plus 5cm}eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+Cloud\+Core\+Interface\+Controller (
+\begin{DoxyParamCaption}
+\item[{{\bf Rabbit\+Manager}}]{rabbit\+Manager}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a19222abf4496aac62c037451b02c7f31}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a19222abf4496aac62c037451b02c7f31}
+Class constructor which autowires Rabbit\+Manager bean.
+
+
+\begin{DoxyParams}{Parameters}
+{\em rabbit\+Manager} & Rabbit\+Manager bean \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!create\+Rdf\+Resources@{create\+Rdf\+Resources}}
+\index{create\+Rdf\+Resources@{create\+Rdf\+Resources}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{create\+Rdf\+Resources("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Request\+Body String rdf\+Resources)}{createRdfResources(@PathVariable("platformId") String platformId,@RequestBody String rdfResources)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+create\+Rdf\+Resources (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Request\+Body String}]{rdf\+Resources}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a86e93a8ba38be222f570d850ca2cfed0}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a86e93a8ba38be222f570d850ca2cfed0}
+Endpoint for creating resource using R\+DF description. 
+
+Currently not implemented. \index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!create\+Resources@{create\+Resources}}
+\index{create\+Resources@{create\+Resources}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{create\+Resources("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Request\+Body Resource resource)}{createResources(@PathVariable("platformId") String platformId,@RequestBody Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+create\+Resources (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Request\+Body {\bf Resource}}]{resource}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9519d747900350a3e05f859a37c53780}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9519d747900350a3e05f859a37c53780}
+Endpoint for creating resource using J\+S\+ON description.
+
+
+\begin{DoxyParams}{Parameters}
+{\em platform\+Id} & ID of a platform that resource belongs to; if platform ID is specified in Resource body object, it will be overwritten by path parameter \\
+\hline
+{\em resource} & resource that is to be registered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+created resource (with resource\+Id filled) or null along with appropriate error H\+T\+TP status code 
+\end{DoxyReturn}
+\index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!delete\+Rdf\+Resource@{delete\+Rdf\+Resource}}
+\index{delete\+Rdf\+Resource@{delete\+Rdf\+Resource}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{delete\+Rdf\+Resource("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Path\+Variable(""resource\+Id"") String resource\+Id)}{deleteRdfResource(@PathVariable("platformId") String platformId,@PathVariable("resourceId") String resourceId)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+delete\+Rdf\+Resource (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String}]{resource\+Id}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a1470a53850a203a85db8f0b93d18c362}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a1470a53850a203a85db8f0b93d18c362}
+Endpoint for deleting resource using R\+DF description. 
+
+Currently not implemented. \index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!delete\+Resource@{delete\+Resource}}
+\index{delete\+Resource@{delete\+Resource}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{delete\+Resource("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Path\+Variable(""resource\+Id"") String resource\+Id)}{deleteResource(@PathVariable("platformId") String platformId,@PathVariable("resourceId") String resourceId)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+delete\+Resource (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String}]{resource\+Id}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9697cf03798b509844d2dc675c50e463}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_a9697cf03798b509844d2dc675c50e463}
+Endpoint for removing resource using J\+S\+ON description.
+
+
+\begin{DoxyParams}{Parameters}
+{\em platform\+Id} & ID of a platform that resource belongs to \\
+\hline
+{\em resource\+Id} & ID of a resource to remove \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+empty body with appropriate operation H\+T\+TP status code 
+\end{DoxyReturn}
+\index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!modify\+Rdf\+Resource@{modify\+Rdf\+Resource}}
+\index{modify\+Rdf\+Resource@{modify\+Rdf\+Resource}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{modify\+Rdf\+Resource("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Path\+Variable(""resource\+Id"") String resource\+Id,"@Request\+Body String rdf\+Resources)}{modifyRdfResource(@PathVariable("platformId") String platformId,@PathVariable("resourceId") String resourceId,@RequestBody String rdfResources)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+modify\+Rdf\+Resource (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String}]{resource\+Id, }
+\item[{@Request\+Body String}]{rdf\+Resources}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_add9d780c27d48dfce1c84537b3e2963e}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_add9d780c27d48dfce1c84537b3e2963e}
+Endpoint for modifying resource using R\+DF description. 
+
+Currently not implemented. \index{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}!modify\+Resource@{modify\+Resource}}
+\index{modify\+Resource@{modify\+Resource}!eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller@{eu\+::h2020\+::symbiote\+::controllers\+::\+Cloud\+Core\+Interface\+Controller}}
+\subsubsection[{\texorpdfstring{modify\+Resource("@Path\+Variable(""platform\+Id"") String platform\+Id,"@Path\+Variable(""resource\+Id"") String resource\+Id,"@Request\+Body Resource resource)}{modifyResource(@PathVariable("platformId") String platformId,@PathVariable("resourceId") String resourceId,@RequestBody Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}Response\+Entity$<$?$>$ eu.\+h2020.\+symbiote.\+controllers.\+Cloud\+Core\+Interface\+Controller.\+modify\+Resource (
+\begin{DoxyParamCaption}
+\item[{@Path\+Variable(\char`\"{}platform\+Id\char`\"{}) String}]{platform\+Id, }
+\item[{@Path\+Variable(\char`\"{}resource\+Id\char`\"{}) String}]{resource\+Id, }
+\item[{@Request\+Body {\bf Resource}}]{resource}
+\end{DoxyParamCaption}
+)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_abb8609ab8c4a98d633a12d137e48ece8}{}\label{classeu_1_1h2020_1_1symbiote_1_1controllers_1_1CloudCoreInterfaceController_abb8609ab8c4a98d633a12d137e48ece8}
+Endpoint for modifying resource using J\+S\+ON description.
+
+
+\begin{DoxyParams}{Parameters}
+{\em platform\+Id} & ID of a platform that resource belongs to; if platform ID is specified in Resource body object, it will be overwritten by path parameter \\
+\hline
+{\em resource\+Id} & ID of a resource to modify; if resource ID is specified in Resource body object, it will be overwritten by path parameter \\
+\hline
+{\em resource} & resource that is to be modified \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+modified resource or null along with appropriate error H\+T\+TP status code 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/main/java/eu/h2020/symbiote/controllers/Cloud\+Core\+Interface\+Controller.\+java\end{DoxyCompactItemize}
