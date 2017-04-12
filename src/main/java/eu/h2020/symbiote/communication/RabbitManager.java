@@ -2,6 +2,8 @@ package eu.h2020.symbiote.communication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.model.Resource;
 import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.apache.commons.logging.Log;
@@ -161,14 +163,14 @@ public class RabbitManager {
      *
      * @param exchangeName name of the exchange to send message to
      * @param routingKey   routing key to send message to
-     * @param resource     resource to be sent
+     * @param coreResourceRequest     resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
-    public RpcResourceResponse sendRpcResourceMessage(String exchangeName, String routingKey, Resource resource) {
+    public CoreResourceRegistryResponse sendRpcResourceMessage(String exchangeName, String routingKey, CoreResourceRegistryRequest coreResourceRequest) {
         try {
             String message;
             ObjectMapper mapper = new ObjectMapper();
-            message = mapper.writeValueAsString(resource);
+            message = mapper.writeValueAsString(coreResourceRequest);
 
             String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
 
@@ -176,7 +178,7 @@ public class RabbitManager {
                 return null;
 
             mapper = new ObjectMapper();
-            RpcResourceResponse response = mapper.readValue(responseMsg, RpcResourceResponse.class);
+            CoreResourceRegistryResponse response = mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
             return response;
         } catch (IOException e) {
             log.error("Failed (un)marshalling of rpc resource message");
@@ -187,30 +189,30 @@ public class RabbitManager {
     /**
      * Method used to send RPC request to create resource.
      *
-     * @param resource resource to be created
+     * @param coreResourceRequest resource to be created
      * @return object containing status of requested operation and, if successful, a resource object containing assigned ID
      */
-    public RpcResourceResponse sendResourceCreationRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceCreationRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, coreResourceRequest);
     }
 
     /**
      * Method used to send RPC request to remove resource.
      *
-     * @param resource resource to be removed
+     * @param coreResourceRequest resource to be removed
      * @return object containing status of requested operation and, if successful, a resource object
      */
-    public RpcResourceResponse sendResourceRemovalRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceRemovalRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, coreResourceRequest);
     }
 
     /**
      * Method used to send RPC request to modify resource.
      *
-     * @param resource resource to be modified
+     * @param coreResourceRequest resource to be modified
      * @return object containing status of requested operation and, if successful, a resource object
      */
-    public RpcResourceResponse sendResourceModificationRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceModificationRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, coreResourceRequest);
     }
 }

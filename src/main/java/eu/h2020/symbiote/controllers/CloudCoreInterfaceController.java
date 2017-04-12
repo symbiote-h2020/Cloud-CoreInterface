@@ -1,7 +1,16 @@
 package eu.h2020.symbiote.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import eu.h2020.symbiote.communication.RabbitManager;
-import eu.h2020.symbiote.model.Resource;
+import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
+import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.ResourceResponse;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
+import eu.h2020.symbiote.core.internal.DescriptionType;
 import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -9,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Class defining all REST endpoints.
@@ -76,23 +88,55 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
      *                   it will be overwritten by path parameter
-     * @param resource   resource that is to be registered
+     * @param resourceRegistryRequest   resource that is to be registered
      * @return created resource (with resourceId filled) or null along with appropriate error HTTP status code
      */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
-                                             @RequestBody Resource resource) {
-        resource.setPlatformId(platformId);
-        RpcResourceResponse response = rabbitManager.sendResourceCreationRequest(resource);
+                                             @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                             @RequestHeader("Authorization") String token) {
+        CoreResourceRegistryResponse coreResponse = null;
+        ObjectMapper mapper = new ObjectMapper();
 
-        log.debug(response);
+        try {
+            CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
+
+            coreRequest.setToken(token);
+            coreRequest.setDescriptionType(DescriptionType.BASIC);
+            coreRequest.setPlatformId(platformId);
+
+            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getResources());
+            coreRequest.setBody(resourcesJson);
+
+            coreResponse = rabbitManager.sendResourceCreationRequest(coreRequest);
+
+            log.debug(coreResponse);
+        } catch (JsonProcessingException e) {
+            log.error("Error while handling resource creation request", e);
+        }
 
         //Timeout or exception on our side
-        if (response == null)
+        if (coreResponse == null)
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
-        return new ResponseEntity<>(response.getResource(), HttpStatus.valueOf(response.getStatus()));
+        List<ResourceResponse> responseListOfResources = null;
+
+        try {
+            responseListOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<List<ResourceResponse>>() {});
+        } catch (IOException e) {
+            log.error("Error while parsing response from core services", e);
+        }
+
+        //Timeout or exception on our side
+        if (responseListOfResources == null)
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        ResourceRegistryResponse response = new ResourceRegistryResponse();
+        response.setMessage(coreResponse.getMessage());
+        response.setResources(responseListOfResources);
+
+        return new ResponseEntity<>(response, HttpStatus.valueOf(coreResponse.getStatus()));
     }
 
     /**
@@ -105,23 +149,23 @@ public class CloudCoreInterfaceController {
      * @param resource   resource that is to be modified
      * @return modified resource or null along with appropriate error HTTP status code
      */
-    @RequestMapping(method = RequestMethod.PUT,
-            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
-    public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
-                                            @PathVariable("resourceId") String resourceId,
-                                            @RequestBody Resource resource) {
-        resource.setPlatformId(platformId);
-        resource.setId(resourceId);
-        RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
-
-        log.debug(response);
-
-        //Timeout or exception on our side
-        if (response == null)
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-
-        return new ResponseEntity<>(response.getResource(), HttpStatus.valueOf(response.getStatus()));
-    }
+//    @RequestMapping(method = RequestMethod.PUT,
+//            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
+//    public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
+//                                            @PathVariable("resourceId") String resourceId,
+//                                            @RequestBody Resource resource) {
+//        resource.setPlatformId(platformId);
+//        resource.setId(resourceId);
+//        RpcResourceResponse response = rabbitManager.sendResourceModificationRequest(resource);
+//
+//        log.debug(response);
+//
+//        //Timeout or exception on our side
+//        if (response == null)
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//
+//        return new ResponseEntity<>(response.getResource(), HttpStatus.valueOf(response.getStatus()));
+//    }
 
     /**
      * Endpoint for removing resource using JSON description.
@@ -130,23 +174,23 @@ public class CloudCoreInterfaceController {
      * @param resourceId ID of a resource to remove
      * @return empty body with appropriate operation HTTP status code
      */
-    @RequestMapping(method = RequestMethod.DELETE,
-            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
-    public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
-                                            @PathVariable("resourceId") String resourceId) {
-        Resource resource = new Resource();
-        resource.setId(resourceId);
-        resource.setPlatformId(platformId);
-        RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
-
-        log.debug(response);
-
-        //Timeout or exception on our side
-        if (response == null)
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-
-        return new ResponseEntity<>(null, HttpStatus.valueOf(response.getStatus()));
-    }
+//    @RequestMapping(method = RequestMethod.DELETE,
+//            value = URI_PREFIX + "/platforms/{platformId}/resources/{resourceId}")
+//    public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
+//                                            @PathVariable("resourceId") String resourceId) {
+//        Resource resource = new Resource();
+//        resource.setId(resourceId);
+//        resource.setPlatformId(platformId);
+//        RpcResourceResponse response = rabbitManager.sendResourceRemovalRequest(resource);
+//
+//        log.debug(response);
+//
+//        //Timeout or exception on our side
+//        if (response == null)
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//
+//        return new ResponseEntity<>(null, HttpStatus.valueOf(response.getStatus()));
+//    }
 
 
 }
