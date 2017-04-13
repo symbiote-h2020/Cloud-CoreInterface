@@ -2,8 +2,6 @@ package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.controllers.CloudCoreInterfaceController;
-import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -11,8 +9,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CloudCoreInterfaceControllerTests {
@@ -22,7 +19,7 @@ public class CloudCoreInterfaceControllerTests {
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
 
-        ResponseEntity response = controller.createRdfResources(null, null);
+        ResponseEntity response = controller.createRdfResources(null, null, null);
 
         assertEquals(response.getStatusCode(), HttpStatus.NOT_IMPLEMENTED);
     }

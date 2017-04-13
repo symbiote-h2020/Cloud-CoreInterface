@@ -1,22 +1,16 @@
 package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.communication.RabbitManager;
-import eu.h2020.symbiote.model.Location;
-import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.RpcResourceResponse;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Bean;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.sampler.AlwaysSampler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -29,10 +23,10 @@ import java.util.List;
 @SpringBootApplication
 public class CloudCoreInterfaceApplication {
 
-	private static Log log = LogFactory.getLog(CloudCoreInterfaceApplication.class);
+    private static Log log = LogFactory.getLog(CloudCoreInterfaceApplication.class);
 
-	public static void main(String[] args) {
-		SpringApplication.run(CloudCoreInterfaceApplication.class, args);
+    public static void main(String[] args) {
+        SpringApplication.run(CloudCoreInterfaceApplication.class, args);
     }
 
     @Component
@@ -41,7 +35,7 @@ public class CloudCoreInterfaceApplication {
         private final RabbitManager rabbitManager;
 
         @Autowired
-        public CLR( RabbitManager rabbitManager) {
+        public CLR(RabbitManager rabbitManager) {
             this.rabbitManager = rabbitManager;
         }
 

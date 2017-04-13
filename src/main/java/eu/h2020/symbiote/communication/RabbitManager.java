@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
-import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -181,7 +179,7 @@ public class RabbitManager {
             CoreResourceRegistryResponse response = mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
             return response;
         } catch (IOException e) {
-            log.error("Failed (un)marshalling of rpc resource message");
+            log.error("Failed (un)marshalling of rpc resource message", e);
         }
         return null;
     }

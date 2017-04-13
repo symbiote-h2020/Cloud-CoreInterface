@@ -3,15 +3,15 @@ package eu.h2020.symbiote.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import eu.h2020.symbiote.communication.RabbitManager;
+import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
-import eu.h2020.symbiote.core.cci.ResourceResponse;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
-import eu.h2020.symbiote.model.RpcResourceResponse;
+import eu.h2020.symbiote.core.model.resources.Resource;
+import eu.h2020.symbiote.model.ResourceRegistryResponseWithStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,16 +46,87 @@ public class CloudCoreInterfaceController {
         this.rabbitManager = rabbitManager;
     }
 
+    private ResourceRegistryResponseWithStatus handleResourceCreationRequest(CoreResourceRegistryRequest coreResourceRegistryRequest) {
+        log.debug("Sending request to Core Services: " + coreResourceRegistryRequest.getBody());
+        CoreResourceRegistryResponse coreResponse = rabbitManager.sendResourceCreationRequest(coreResourceRegistryRequest);
+
+        //Timeout or exception on our side
+        if (coreResponse == null) {
+            log.debug("Timeout on handling request by Core Services");
+            ResourceRegistryResponseWithStatus responseWithStatus = new ResourceRegistryResponseWithStatus();
+            responseWithStatus.setStatus(500);
+            responseWithStatus.getResourceRegistryResponse().setMessage("Timeout on Core Services side. Resources might have been created, but response did not arrive on time.");
+            return responseWithStatus;
+        }
+
+        log.debug("Response from Core Services received: " + coreResponse.getStatus() + ", " + coreResponse.getMessage() + ", " + coreResponse.getBody());
+
+        List<Resource> responseListOfResources = null;
+
+        if (coreResponse.getBody() != null) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                responseListOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<List<Resource>>() {
+                });
+            } catch (IOException e) {
+                log.error("Error while parsing response body from Core Services", e);
+                ResourceRegistryResponseWithStatus responseWithStatus = new ResourceRegistryResponseWithStatus();
+                responseWithStatus.setStatus(500);
+                responseWithStatus.getResourceRegistryResponse().setMessage("Error while parsing response body from Core Service. Resources might have been vreated, but response was malformed.");
+                return responseWithStatus;
+            }
+        }
+
+        ResourceRegistryResponse response = new ResourceRegistryResponse();
+        response.setMessage(coreResponse.getMessage());
+        response.setResources(responseListOfResources);
+
+        log.debug("ResourceRegistryResponse created and returned to endpoint");
+
+        return new ResourceRegistryResponseWithStatus(coreResponse.getStatus(), response);
+    }
+
     /**
-     * Endpoint for creating resource using RDF description.
-     * <p>
-     * Currently not implemented.
+     * Endpoint for creating resources using RDF description.
+     *
+     * @param platformId              ID of a platform that resources belong to
+     * @param resourceRegistryRequest request containing resources to be registered
+     * @param token                   authorization token
+     * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity<?> createRdfResources(@PathVariable("platformId") String platformId,
-                                                @RequestBody String rdfResources) {
-        return new ResponseEntity<>("RDF Resource create: NYI", HttpStatus.NOT_IMPLEMENTED);
+                                                @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                                @RequestHeader("Authorization") String token) {
+        log.debug("Request for creation of RDF resources");
+
+        CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
+        coreRequest.setToken(token);
+        coreRequest.setDescriptionType(DescriptionType.RDF);
+        coreRequest.setPlatformId(platformId);
+
+        ResourceRegistryResponseWithStatus response;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+
+            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getRdfInfo());
+            coreRequest.setBody(resourcesJson);
+
+            log.debug("Request for Core Services prepared");
+
+            response = handleResourceCreationRequest(coreRequest);
+
+        } catch (JsonProcessingException e) {
+            log.error("Error while handling resource creation request", e);
+            response = new ResourceRegistryResponseWithStatus();
+            response.getResourceRegistryResponse().setMessage("Error while parsing message body. No data has been processed by Core Services.");
+            response.setStatus(400);
+        }
+
+        log.debug("Returning response to client");
+        return new ResponseEntity<>(response.getResourceRegistryResponse(), HttpStatus.valueOf(response.getStatus()));
     }
 
     /**
@@ -84,59 +155,47 @@ public class CloudCoreInterfaceController {
     }
 
     /**
-     * Endpoint for creating resource using JSON description.
+     * Endpoint for creating resources using JSON description.
      *
-     * @param platformId ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
-     *                   it will be overwritten by path parameter
-     * @param resourceRegistryRequest   resource that is to be registered
-     * @return created resource (with resourceId filled) or null along with appropriate error HTTP status code
+     * @param platformId              ID of a platform that resources belong to
+     * @param resourceRegistryRequest request containing resources to be registered
+     * @param token                   authorization token
+     * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
                                              @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                              @RequestHeader("Authorization") String token) {
-        CoreResourceRegistryResponse coreResponse = null;
-        ObjectMapper mapper = new ObjectMapper();
+        log.debug("Request for creation of basic resources");
+
+        CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
+        coreRequest.setToken(token);
+        coreRequest.setDescriptionType(DescriptionType.BASIC);
+        coreRequest.setPlatformId(platformId);
+
+        ResourceRegistryResponseWithStatus response;
 
         try {
-            CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
+            ObjectMapper mapper = new ObjectMapper();
 
-            coreRequest.setToken(token);
-            coreRequest.setDescriptionType(DescriptionType.BASIC);
-            coreRequest.setPlatformId(platformId);
-
-            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getResources());
+            String resourcesJson = mapper.writerFor(new TypeReference<List<Resource>>() {
+            }).writeValueAsString(resourceRegistryRequest.getResources());
             coreRequest.setBody(resourcesJson);
 
-            coreResponse = rabbitManager.sendResourceCreationRequest(coreRequest);
+            log.debug("Request for Core Services prepared");
 
-            log.debug(coreResponse);
+            response = handleResourceCreationRequest(coreRequest);
+
         } catch (JsonProcessingException e) {
             log.error("Error while handling resource creation request", e);
+            response = new ResourceRegistryResponseWithStatus();
+            response.getResourceRegistryResponse().setMessage("Error while parsing message body. No data has been processed by Core Services.");
+            response.setStatus(400);
         }
 
-        //Timeout or exception on our side
-        if (coreResponse == null)
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-
-        List<ResourceResponse> responseListOfResources = null;
-
-        try {
-            responseListOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<List<ResourceResponse>>() {});
-        } catch (IOException e) {
-            log.error("Error while parsing response from core services", e);
-        }
-
-        //Timeout or exception on our side
-        if (responseListOfResources == null)
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-
-        ResourceRegistryResponse response = new ResourceRegistryResponse();
-        response.setMessage(coreResponse.getMessage());
-        response.setResources(responseListOfResources);
-
-        return new ResponseEntity<>(response, HttpStatus.valueOf(coreResponse.getStatus()));
+        log.debug("Returning response to client");
+        return new ResponseEntity<>(response.getResourceRegistryResponse(), HttpStatus.valueOf(response.getStatus()));
     }
 
     /**

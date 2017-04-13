@@ -1,16 +1,8 @@
 package eu.h2020.symbiote;
 
-import eu.h2020.symbiote.communication.RabbitManager;
-import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.RpcResourceResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RabbitManagerTests {
