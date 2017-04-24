@@ -3,6 +3,7 @@ package eu.h2020.symbiote.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
@@ -260,6 +261,24 @@ public class CloudCoreInterfaceController {
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
         return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
     }
+
+    @RequestMapping(method = RequestMethod.POST,
+            value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
+    public ResponseEntity<?> monitoring(@PathVariable("platformId") String platformId,
+                                            @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                            @RequestHeader("Authorization") String token) {
+        log.debug("Cloud monitoring platform received");
+
+        boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
+
+        if (result)
+            return new ResponseEntity<>(null, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+
 
 
 }

@@ -1,7 +1,9 @@
 package eu.h2020.symbiote.communication;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import org.apache.commons.logging.Log;
@@ -57,6 +59,24 @@ public class RabbitManager {
     @Value("${rabbit.routingKey.resource.modificationRequested}")
     private String resourceModificationRequestedRoutingKey;
 
+    @Value("${rabbit.exchange.crm.name}")
+    private String crmExchangeName;
+
+    @Value("${rabbit.exchange.crm.type}")
+    private String crmExchangeType;
+
+    @Value("${rabbit.exchange.crm.durable}")
+    private boolean crmExchangeDurable;
+
+    @Value("${rabbit.exchange.crm.autodelete}")
+    private boolean crmExchangeAutodelete;
+
+    @Value("${rabbit.exchange.crm.internal}")
+    private boolean crmExchangeInternal;
+
+    @Value("${rabbit.routingKey.crm.monitoring}")
+    private String crmMonitoringRoutingKey;
+
     private Connection connection;
     private Channel channel;
 
@@ -81,6 +101,13 @@ public class RabbitManager {
                     this.resourceExchangeDurable,
                     this.resourceExchangeAutodelete,
                     this.resourceExchangeInternal,
+                    null);
+
+            this.channel.exchangeDeclare(this.crmExchangeName,
+                    this.crmExchangeType,
+                    this.crmExchangeDurable,
+                    this.crmExchangeAutodelete,
+                    this.crmExchangeInternal,
                     null);
 
         } catch (IOException e) {
@@ -156,12 +183,25 @@ public class RabbitManager {
         return null;
     }
 
+    public boolean sendAsyncMessage(String exchangeName, String routingKey, String message) {
+        try {
+            AMQP.BasicProperties props = new AMQP.BasicProperties()
+                    .builder()
+                    .contentType("application/json")
+                    .build();
+            this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName name of the exchange to send message to
-     * @param routingKey   routing key to send message to
-     * @param coreResourceRequest     resource to be sent
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param coreResourceRequest resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
     public CoreResourceRegistryResponse sendRpcResourceMessage(String exchangeName, String routingKey, CoreResourceRegistryRequest coreResourceRequest) {
@@ -212,5 +252,16 @@ public class RabbitManager {
      */
     public CoreResourceRegistryResponse sendResourceModificationRequest(CoreResourceRegistryRequest coreResourceRequest) {
         return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, coreResourceRequest);
+    }
+
+    public boolean sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String message = mapper.writeValueAsString(cloudMonitoringPlatform);
+            return sendAsyncMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, message);
+        } catch (JsonProcessingException e) {
+            return false;
+        }
+
     }
 }
