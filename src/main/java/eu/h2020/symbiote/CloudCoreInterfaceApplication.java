@@ -1,8 +1,6 @@
 package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.communication.RabbitManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,8 +20,6 @@ import org.springframework.stereotype.Component;
 @EnableDiscoveryClient
 @SpringBootApplication
 public class CloudCoreInterfaceApplication {
-
-    private static Log log = LogFactory.getLog(CloudCoreInterfaceApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(CloudCoreInterfaceApplication.class, args);

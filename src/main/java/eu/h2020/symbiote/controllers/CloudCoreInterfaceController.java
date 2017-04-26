@@ -32,7 +32,7 @@ import java.util.List;
 public class CloudCoreInterfaceController {
     private static final String URI_PREFIX = "/cloudCoreInterface/v1";
 
-    public static Log log = LogFactory.getLog(CloudCoreInterfaceController.class);
+    public static final Log log = LogFactory.getLog(CloudCoreInterfaceController.class);
 
     private enum CoreOperationType {CREATE, MODIFY, DELETE}
 
@@ -71,6 +71,9 @@ public class CloudCoreInterfaceController {
     }
 
     private CoreResourceRegistryRequest prepareBasicRequest(String platformId, ResourceRegistryRequest resourceRegistryRequest, String token) {
+        if (resourceRegistryRequest == null)
+            return null;
+
         CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
         coreRequest.setToken(token);
         coreRequest.setDescriptionType(DescriptionType.BASIC);
@@ -94,7 +97,7 @@ public class CloudCoreInterfaceController {
         return coreRequest;
     }
 
-    private ResponseEntity<?> handleCoreResourceRequest(CoreResourceRegistryRequest coreResourceRegistryRequest, CoreOperationType coreOperationType) {
+    private ResponseEntity handleCoreResourceRequest(CoreResourceRegistryRequest coreResourceRegistryRequest, CoreOperationType coreOperationType) {
         ResourceRegistryResponse response = new ResourceRegistryResponse();
 
         if (coreResourceRegistryRequest == null) {
@@ -162,7 +165,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<?> createRdfResources(@PathVariable("platformId") String platformId,
+    public ResponseEntity createRdfResources(@PathVariable("platformId") String platformId,
                                                 @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                                 @RequestHeader("Authorization") String token) {
         log.debug("Request for creation of RDF resources");
@@ -178,7 +181,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<?> modifyRdfResource(@PathVariable("platformId") String platformId,
+    public ResponseEntity modifyRdfResource(@PathVariable("platformId") String platformId,
                                                @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                                @RequestHeader("Authorization") String token) {
         log.debug("Request for modification of RDF resources");
@@ -194,7 +197,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity<?> deleteRdfResource(@PathVariable("platformId") String platformId,
+    public ResponseEntity deleteRdfResource(@PathVariable("platformId") String platformId,
                                                @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                                @RequestHeader("Authorization") String token) {
         log.debug("Request for removal of RDF resources");
@@ -214,7 +217,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity<?> createResources(@PathVariable("platformId") String platformId,
+    public ResponseEntity createResources(@PathVariable("platformId") String platformId,
                                              @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                              @RequestHeader("Authorization") String token) {
         log.debug("Request for creation of basic resources");
@@ -234,7 +237,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity<?> modifyResource(@PathVariable("platformId") String platformId,
+    public ResponseEntity modifyResource(@PathVariable("platformId") String platformId,
                                             @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                             @RequestHeader("Authorization") String token) {
         log.debug("Request for modification of basic resources");
@@ -253,7 +256,7 @@ public class CloudCoreInterfaceController {
      */
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity<?> deleteResource(@PathVariable("platformId") String platformId,
+    public ResponseEntity deleteResource(@PathVariable("platformId") String platformId,
                                             @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                             @RequestHeader("Authorization") String token) {
         log.debug("Request for removal of basic resources");
@@ -264,7 +267,7 @@ public class CloudCoreInterfaceController {
 
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
-    public ResponseEntity<?> monitoring(@PathVariable("platformId") String platformId,
+    public ResponseEntity monitoring(@PathVariable("platformId") String platformId,
                                             @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
                                             @RequestHeader("Authorization") String token) {
         log.debug("Cloud monitoring platform received");

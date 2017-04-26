@@ -110,10 +110,8 @@ public class RabbitManager {
                     this.crmExchangeInternal,
                     null);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        } catch (IOException | TimeoutException e) {
+            log.error("Error while initiating communication via RabbitMQ", e);
         }
     }
 
@@ -127,10 +125,8 @@ public class RabbitManager {
                 this.channel.close();
             if (this.connection != null && this.connection.isOpen())
                 this.connection.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        } catch (IOException | TimeoutException e) {
+            log.error("Error while closing connection with RabbitMQ", e);
         }
     }
 
@@ -178,7 +174,7 @@ public class RabbitManager {
 
             return responseMsg;
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Error while sending RPC Message via RabbitMQ", e);
         }
         return null;
     }
@@ -192,6 +188,7 @@ public class RabbitManager {
             this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
             return true;
         } catch (IOException e) {
+            log.error("Error while sending async message via RabbitMQ", e);
             return false;
         }
     }
@@ -216,8 +213,7 @@ public class RabbitManager {
                 return null;
 
             mapper = new ObjectMapper();
-            CoreResourceRegistryResponse response = mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
-            return response;
+            return mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
         } catch (IOException e) {
             log.error("Failed (un)marshalling of rpc resource message", e);
         }
@@ -260,6 +256,7 @@ public class RabbitManager {
             String message = mapper.writeValueAsString(cloudMonitoringPlatform);
             return sendAsyncMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, message);
         } catch (JsonProcessingException e) {
+            log.error("Error while processing JSON request", e);
             return false;
         }
 
