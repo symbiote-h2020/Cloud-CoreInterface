@@ -172,6 +172,9 @@ public class RabbitManager {
                         log.debug("Got reply with correlationId: " + correlationId);
 //                        responseMsg = new String(delivery.getBody());
                         response.offer(new String(body, "UTF-8"));
+//                        getChannel().basicAck(envelope.getDeliveryTag(),false);
+                        getChannel().basicCancel(this.getConsumerTag());
+
                     } else {
                         log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + properties.getCorrelationId() );
                     }
@@ -202,7 +205,7 @@ public class RabbitManager {
             log.debug("Finished rpc loop");
 
             String finalResponse = response.take();
-            this.channel.basicCancel(consumer.getConsumerTag());
+//            this.channel.basicCancel(consumer.getConsumerTag());
             return finalResponse;
         } catch (IOException | InterruptedException e) {
             log.error("Error while sending RPC Message via RabbitMQ", e);
