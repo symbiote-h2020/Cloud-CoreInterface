@@ -79,6 +79,7 @@ public class RabbitManager {
 
     private Connection connection;
     private Channel channel;
+    private String durableResponseQueueName;
 
     /**
      * Method used to initialise RabbitMQ connection and declare all required exchanges.
@@ -109,6 +110,8 @@ public class RabbitManager {
                     this.crmExchangeAutodelete,
                     this.crmExchangeInternal,
                     null);
+
+            this.durableResponseQueueName = this.channel.queueDeclare("symbIoTe-CloudCoreInterface-registerResourceReplyQueue",false,false,true,null).getQueue();
 
         } catch (IOException | TimeoutException e) {
             log.error("Error while initiating communication via RabbitMQ", e);
@@ -146,19 +149,22 @@ public class RabbitManager {
         try {
             log.debug("Sending message...");
 
-            String replyQueueName = this.channel.queueDeclare().getQueue();
+
 
             String correlationId = UUID.randomUUID().toString();
             AMQP.BasicProperties props = new AMQP.BasicProperties()
                     .builder()
                     .correlationId(correlationId)
-                    .replyTo(replyQueueName)
+                    .replyTo(durableResponseQueueName)
                     .build();
 
             QueueingConsumer consumer = new QueueingConsumer(channel);
-            this.channel.basicConsume(replyQueueName, true, consumer);
+            this.channel.basicConsume(durableResponseQueueName, true, consumer);
 
             String responseMsg = null;
+
+            //TODO fix logs
+            log.debug("Sending msg with correlationId " + correlationId);
 
             this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
             while (true) {
@@ -167,10 +173,14 @@ public class RabbitManager {
                     return null;
 
                 if (delivery.getProperties().getCorrelationId().equals(correlationId)) {
+                    log.debug("Got reply with correlationId: " + correlationId);
                     responseMsg = new String(delivery.getBody());
                     break;
+                } else {
+                    log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + delivery.getProperties().getCorrelationId() );
                 }
             }
+            log.debug("Finished rpc loop");
 
             return responseMsg;
         } catch (IOException | InterruptedException e) {
