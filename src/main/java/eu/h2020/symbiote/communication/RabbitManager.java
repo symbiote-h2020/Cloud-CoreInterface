@@ -14,8 +14,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -81,7 +79,6 @@ public class RabbitManager {
 
     private Connection connection;
     private Channel channel;
-    private String durableResponseQueueName;
 
     /**
      * Method used to initialise RabbitMQ connection and declare all required exchanges.
@@ -112,8 +109,6 @@ public class RabbitManager {
                     this.crmExchangeAutodelete,
                     this.crmExchangeInternal,
                     null);
-
-            this.durableResponseQueueName = this.channel.queueDeclare("symbIoTe-CloudCoreInterface-registerResourceReplyQueue",true,true,false,null).getQueue();
 
         } catch (IOException | TimeoutException e) {
             log.error("Error while initiating communication via RabbitMQ", e);
@@ -148,67 +143,70 @@ public class RabbitManager {
      * @return response from the consumer or null if timeout occurs
      */
     public String sendRpcMessage(String exchangeName, String routingKey, String message) {
+        QueueingConsumer consumer = new QueueingConsumer(channel);
+
         try {
             log.debug("Sending message...");
 
-
+            String replyQueueName = this.channel.queueDeclare().getQueue();
 
             String correlationId = UUID.randomUUID().toString();
             AMQP.BasicProperties props = new AMQP.BasicProperties()
                     .builder()
                     .correlationId(correlationId)
-                    .replyTo(durableResponseQueueName)
+                    .replyTo(replyQueueName)
+                    .contentType("application/json")
                     .build();
 
-//            QueueingConsumer consumer = new QueueingConsumer(channel);
-//            this.channel.basicConsume(durableResponseQueueName, true, consumer);
+//            final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
+//
+//            DefaultConsumer consumer = new DefaultConsumer(channel) {
+//                @Override
+//                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+//                    if (properties.getCorrelationId().equals(correlationId)) {
+//                        log.debug("Got reply with correlationId: " + correlationId);
+////                        responseMsg = new String(delivery.getBody());
+//                        response.offer(new String(body, "UTF-8"));
+////                        getChannel().basicAck(envelope.getDeliveryTag(),false);
+//                        getChannel().basicCancel(this.getConsumerTag());
+//
+//                    } else {
+//                        log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + properties.getCorrelationId() );
+//                    }
+//                }
+//            };
 
-            final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
+            channel.basicConsume(replyQueueName, true, consumer);
 
-            DefaultConsumer consumer = new DefaultConsumer(channel) {
-                @Override
-                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                    if (properties.getCorrelationId().equals(correlationId)) {
-                        log.debug("Got reply with correlationId: " + correlationId);
-//                        responseMsg = new String(delivery.getBody());
-                        response.offer(new String(body, "UTF-8"));
-//                        getChannel().basicAck(envelope.getDeliveryTag(),false);
-                        getChannel().basicCancel(this.getConsumerTag());
-
-                    } else {
-                        log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + properties.getCorrelationId() );
-                    }
-                }
-            };
-
-            channel.basicConsume(durableResponseQueueName, true, consumer);
-
-//            String responseMsg = null;
-
-            //TODO fix logs
-            log.debug("Sending msg with correlationId " + correlationId);
+            String responseMsg = null;
 
             this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
-//            while (true) {
-//                QueueingConsumer.Delivery delivery = consumer.nextDelivery(20000);
-//                if (delivery == null)
-//                    return null;
-//
-//                if (delivery.getProperties().getCorrelationId().equals(correlationId)) {
-//                    log.debug("Got reply with correlationId: " + correlationId);
-//                    responseMsg = new String(delivery.getBody());
-//                    break;
-//                } else {
-//                    log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + delivery.getProperties().getCorrelationId() );
-//                }
-//            }
+            while (true) {
+                QueueingConsumer.Delivery delivery = consumer.nextDelivery(20000);
+                if (delivery == null) {
+                    log.info("Timeout in response retrieval");
+                    return null;
+                }
+
+                if (delivery.getProperties().getCorrelationId().equals(correlationId)) {
+                    log.debug("Got reply with correlationId: " + correlationId);
+                    responseMsg = new String(delivery.getBody());
+                    break;
+                } else {
+                    log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + delivery.getProperties().getCorrelationId());
+                }
+            }
             log.debug("Finished rpc loop");
 
-            String finalResponse = response.take();
-//            this.channel.basicCancel(consumer.getConsumerTag());
-            return finalResponse;
+            return responseMsg;
         } catch (IOException | InterruptedException e) {
             log.error("Error while sending RPC Message via RabbitMQ", e);
+        } finally {
+            try {
+                this.channel.basicCancel(consumer.getConsumerTag());
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
         return null;
     }
