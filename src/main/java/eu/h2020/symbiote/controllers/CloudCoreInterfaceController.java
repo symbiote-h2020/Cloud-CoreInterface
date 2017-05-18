@@ -166,8 +166,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity createRdfResources(@PathVariable("platformId") String platformId,
-                                                @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                                @RequestHeader("X-Auth-Token") String token) {
+                                             @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                             @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for creation of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -175,15 +175,18 @@ public class CloudCoreInterfaceController {
     }
 
     /**
-     * Endpoint for modifying resource using RDF description.
-     * <p>
-     * Currently not implemented.
+     * Endpoint for modifying resources using RDF description.
+     *
+     * @param platformId              ID of a platform that resources belong to
+     * @param resourceRegistryRequest request containing resources to be modified
+     * @param token                   authorization token
+     * @return modified resources with appropriate HTTP status code
      */
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity modifyRdfResource(@PathVariable("platformId") String platformId,
-                                               @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                               @RequestHeader("X-Auth-Token") String token) {
+                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for modification of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -191,15 +194,18 @@ public class CloudCoreInterfaceController {
     }
 
     /**
-     * Endpoint for deleting resource using RDF description.
-     * <p>
-     * Currently not implemented.
+     * Endpoint for deleting resources using RDF description.
+     *
+     * @param platformId              ID of a platform that resources belong to
+     * @param resourceRegistryRequest request containing resources to be deleted
+     * @param token                   authorization token
+     * @return deleted resources with appropriate HTTP status code
      */
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity deleteRdfResource(@PathVariable("platformId") String platformId,
-                                               @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                               @RequestHeader("X-Auth-Token") String token) {
+                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for removal of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -218,8 +224,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity createResources(@PathVariable("platformId") String platformId,
-                                             @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                             @RequestHeader("X-Auth-Token") String token) {
+                                          @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                          @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for creation of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
@@ -238,8 +244,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity modifyResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
+                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for modification of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
@@ -257,19 +263,27 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity deleteResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
+                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for removal of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
         return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
     }
 
+    /**
+     * Endpoint for notifying Core Resource Monitor of platform status.
+     *
+     * @param platformId              ID of a platform
+     * @param cloudMonitoringPlatform status of platform to be sent to CRM
+     * @param token                   autohrization token
+     * @return empty response with apropriate HTTP status code
+     */
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
     public ResponseEntity monitoring(@PathVariable("platformId") String platformId,
-                                            @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
-                                            @RequestHeader("X-Auth-Token") String token) {
+                                     @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                     @RequestHeader("X-Auth-Token") String token) {
         log.debug("Cloud monitoring platform received");
 
         boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
@@ -280,8 +294,6 @@ public class CloudCoreInterfaceController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
-
-
 
 
 }

@@ -158,24 +158,6 @@ public class RabbitManager {
                     .contentType("application/json")
                     .build();
 
-//            final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
-//
-//            DefaultConsumer consumer = new DefaultConsumer(channel) {
-//                @Override
-//                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-//                    if (properties.getCorrelationId().equals(correlationId)) {
-//                        log.debug("Got reply with correlationId: " + correlationId);
-////                        responseMsg = new String(delivery.getBody());
-//                        response.offer(new String(body, "UTF-8"));
-////                        getChannel().basicAck(envelope.getDeliveryTag(),false);
-//                        getChannel().basicCancel(this.getConsumerTag());
-//
-//                    } else {
-//                        log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + properties.getCorrelationId() );
-//                    }
-//                }
-//            };
-
             channel.basicConsume(replyQueueName, true, consumer);
 
             String responseMsg = null;
@@ -212,6 +194,15 @@ public class RabbitManager {
     }
 
 
+    /**
+     * Method used to send an asynchronous message, without expecting any returning result.
+     * Exchange should be declared before sending the message.
+     *
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param message      message to be sent
+     * @return true if publish went ok, false otherwise
+     */
     public boolean sendAsyncMessage(String exchangeName, String routingKey, String message) {
         try {
             AMQP.BasicProperties props = new AMQP.BasicProperties()
@@ -283,6 +274,12 @@ public class RabbitManager {
         return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, coreResourceRequest);
     }
 
+    /**
+     * Method used to send asynchronous, monitoring message to Core Resource Monitor.
+     *
+     * @param cloudMonitoringPlatform message from platform
+     * @return true if message is sent ok, false otherwise
+     */
     public boolean sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
         ObjectMapper mapper = new ObjectMapper();
         try {
