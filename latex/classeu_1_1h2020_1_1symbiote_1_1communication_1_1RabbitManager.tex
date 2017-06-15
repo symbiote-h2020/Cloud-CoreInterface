@@ -7,7 +7,7 @@ Collaboration diagram for eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manage
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=251pt]{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager__coll__graph}
+\includegraphics[width=250pt]{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager__coll__graph}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -17,13 +17,17 @@ void \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a
 \item 
 String \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a822ebbed01755311ca9038bb7fa43591}{send\+Rpc\+Message} (String exchange\+Name, String routing\+Key, String message)
 \item 
-\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1RpcResourceResponse}{Rpc\+Resource\+Response} \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a6808181b7e4c15f2df78ce4fad849410}{send\+Rpc\+Resource\+Message} (String exchange\+Name, String routing\+Key, \hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+boolean \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaf8fea1645c8e35ed2a1d8f8e2b4356f}{send\+Async\+Message} (String exchange\+Name, String routing\+Key, String message)
 \item 
-\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1RpcResourceResponse}{Rpc\+Resource\+Response} \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a08dd4eafe2acb4f63d1f91f5bb06e334}{send\+Resource\+Creation\+Request} (\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+Core\+Resource\+Registry\+Response \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a98ca7f2122e2e4bb12d2252163177f0e}{send\+Rpc\+Resource\+Message} (String exchange\+Name, String routing\+Key, Core\+Resource\+Registry\+Request core\+Resource\+Request)
 \item 
-\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1RpcResourceResponse}{Rpc\+Resource\+Response} \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaa73d52dd050020e7f639e19ec2d1c74}{send\+Resource\+Removal\+Request} (\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+Core\+Resource\+Registry\+Response \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4356c09360119574086e8c7ae7d7e676}{send\+Resource\+Creation\+Request} (Core\+Resource\+Registry\+Request core\+Resource\+Request)
 \item 
-\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1RpcResourceResponse}{Rpc\+Resource\+Response} \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_ac2d5ddaefda40d8c479857ca18f6a505}{send\+Resource\+Modification\+Request} (\hyperlink{classeu_1_1h2020_1_1symbiote_1_1model_1_1Resource}{Resource} resource)
+Core\+Resource\+Registry\+Response \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4ccbd77fad17957b8384cf53bf0af5e2}{send\+Resource\+Removal\+Request} (Core\+Resource\+Registry\+Request core\+Resource\+Request)
+\item 
+Core\+Resource\+Registry\+Response \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a2d8ecc7c67f2215a4e03dd082c6e39c0}{send\+Resource\+Modification\+Request} (Core\+Resource\+Registry\+Request core\+Resource\+Request)
+\item 
+boolean \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a18b771d2db6a06469a6776ebf0ff96e1}{send\+Monitoring\+Message} (Cloud\+Monitoring\+Platform cloud\+Monitoring\+Platform)
 \end{DoxyCompactItemize}
 
 
@@ -33,73 +37,102 @@ Class used for all internal communication using Rabbit\+MQ A\+M\+QP implementati
 \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager}{Rabbit\+Manager} uses properties taken from Core\+Config\+Server to set up communication (exchange parameters, routing keys etc.) 
 
 \subsection{Member Function Documentation}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a30abf6a670122eb22a8105a206858616}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a30abf6a670122eb22a8105a206858616}} 
 \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!init\+Communication@{init\+Communication}}
 \index{init\+Communication@{init\+Communication}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{init\+Communication()}{initCommunication()}}]{\setlength{\rightskip}{0pt plus 5cm}void eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+init\+Communication (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a30abf6a670122eb22a8105a206858616}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a30abf6a670122eb22a8105a206858616}
-Method used to initialise Rabbit\+MQ connection and declare all required exchanges. This method should be called once, after bean initialization (so that properties from Core\+Config\+Server are obtained), but before using \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager}{Rabbit\+Manager} to send any message. \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Resource\+Creation\+Request@{send\+Resource\+Creation\+Request}}
+\subsubsection{\texorpdfstring{init\+Communication()}{initCommunication()}}
+{\footnotesize\ttfamily void eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+init\+Communication (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Method used to initialise Rabbit\+MQ connection and declare all required exchanges. This method should be called once, after bean initialization (so that properties from Core\+Config\+Server are obtained), but before using \hyperlink{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager}{Rabbit\+Manager} to send any message. \mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaf8fea1645c8e35ed2a1d8f8e2b4356f}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaf8fea1645c8e35ed2a1d8f8e2b4356f}} 
+\index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Async\+Message@{send\+Async\+Message}}
+\index{send\+Async\+Message@{send\+Async\+Message}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
+\subsubsection{\texorpdfstring{send\+Async\+Message()}{sendAsyncMessage()}}
+{\footnotesize\ttfamily boolean eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Async\+Message (\begin{DoxyParamCaption}\item[{String}]{exchange\+Name,  }\item[{String}]{routing\+Key,  }\item[{String}]{message }\end{DoxyParamCaption})}
+
+Method used to send an asynchronous message, without expecting any returning result. Exchange should be declared before sending the message.
+
+
+\begin{DoxyParams}{Parameters}
+{\em exchange\+Name} & name of the exchange to send message to \\
+\hline
+{\em routing\+Key} & routing key to send message to \\
+\hline
+{\em message} & message to be sent \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if publish went ok, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a18b771d2db6a06469a6776ebf0ff96e1}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a18b771d2db6a06469a6776ebf0ff96e1}} 
+\index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Monitoring\+Message@{send\+Monitoring\+Message}}
+\index{send\+Monitoring\+Message@{send\+Monitoring\+Message}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
+\subsubsection{\texorpdfstring{send\+Monitoring\+Message()}{sendMonitoringMessage()}}
+{\footnotesize\ttfamily boolean eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Monitoring\+Message (\begin{DoxyParamCaption}\item[{Cloud\+Monitoring\+Platform}]{cloud\+Monitoring\+Platform }\end{DoxyParamCaption})}
+
+Method used to send asynchronous, monitoring message to Core Resource Monitor.
+
+
+\begin{DoxyParams}{Parameters}
+{\em cloud\+Monitoring\+Platform} & message from platform \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if message is sent ok, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4356c09360119574086e8c7ae7d7e676}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4356c09360119574086e8c7ae7d7e676}} 
+\index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Resource\+Creation\+Request@{send\+Resource\+Creation\+Request}}
 \index{send\+Resource\+Creation\+Request@{send\+Resource\+Creation\+Request}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{send\+Resource\+Creation\+Request(\+Resource resource)}{sendResourceCreationRequest(Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Rpc\+Resource\+Response} eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Creation\+Request (
-\begin{DoxyParamCaption}
-\item[{{\bf Resource}}]{resource}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a08dd4eafe2acb4f63d1f91f5bb06e334}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a08dd4eafe2acb4f63d1f91f5bb06e334}
+\subsubsection{\texorpdfstring{send\+Resource\+Creation\+Request()}{sendResourceCreationRequest()}}
+{\footnotesize\ttfamily Core\+Resource\+Registry\+Response eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Creation\+Request (\begin{DoxyParamCaption}\item[{Core\+Resource\+Registry\+Request}]{core\+Resource\+Request }\end{DoxyParamCaption})}
+
 Method used to send R\+PC request to create resource.
 
 
 \begin{DoxyParams}{Parameters}
-{\em resource} & resource to be created \\
+{\em core\+Resource\+Request} & resource to be created \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 object containing status of requested operation and, if successful, a resource object containing assigned ID 
 \end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a2d8ecc7c67f2215a4e03dd082c6e39c0}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a2d8ecc7c67f2215a4e03dd082c6e39c0}} 
 \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Resource\+Modification\+Request@{send\+Resource\+Modification\+Request}}
 \index{send\+Resource\+Modification\+Request@{send\+Resource\+Modification\+Request}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{send\+Resource\+Modification\+Request(\+Resource resource)}{sendResourceModificationRequest(Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Rpc\+Resource\+Response} eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Modification\+Request (
-\begin{DoxyParamCaption}
-\item[{{\bf Resource}}]{resource}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_ac2d5ddaefda40d8c479857ca18f6a505}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_ac2d5ddaefda40d8c479857ca18f6a505}
+\subsubsection{\texorpdfstring{send\+Resource\+Modification\+Request()}{sendResourceModificationRequest()}}
+{\footnotesize\ttfamily Core\+Resource\+Registry\+Response eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Modification\+Request (\begin{DoxyParamCaption}\item[{Core\+Resource\+Registry\+Request}]{core\+Resource\+Request }\end{DoxyParamCaption})}
+
 Method used to send R\+PC request to modify resource.
 
 
 \begin{DoxyParams}{Parameters}
-{\em resource} & resource to be modified \\
+{\em core\+Resource\+Request} & resource to be modified \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 object containing status of requested operation and, if successful, a resource object 
 \end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4ccbd77fad17957b8384cf53bf0af5e2}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a4ccbd77fad17957b8384cf53bf0af5e2}} 
 \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Resource\+Removal\+Request@{send\+Resource\+Removal\+Request}}
 \index{send\+Resource\+Removal\+Request@{send\+Resource\+Removal\+Request}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{send\+Resource\+Removal\+Request(\+Resource resource)}{sendResourceRemovalRequest(Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Rpc\+Resource\+Response} eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Removal\+Request (
-\begin{DoxyParamCaption}
-\item[{{\bf Resource}}]{resource}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaa73d52dd050020e7f639e19ec2d1c74}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_aaa73d52dd050020e7f639e19ec2d1c74}
+\subsubsection{\texorpdfstring{send\+Resource\+Removal\+Request()}{sendResourceRemovalRequest()}}
+{\footnotesize\ttfamily Core\+Resource\+Registry\+Response eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Resource\+Removal\+Request (\begin{DoxyParamCaption}\item[{Core\+Resource\+Registry\+Request}]{core\+Resource\+Request }\end{DoxyParamCaption})}
+
 Method used to send R\+PC request to remove resource.
 
 
 \begin{DoxyParams}{Parameters}
-{\em resource} & resource to be removed \\
+{\em core\+Resource\+Request} & resource to be removed \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 object containing status of requested operation and, if successful, a resource object 
 \end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a822ebbed01755311ca9038bb7fa43591}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a822ebbed01755311ca9038bb7fa43591}} 
 \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Rpc\+Message@{send\+Rpc\+Message}}
 \index{send\+Rpc\+Message@{send\+Rpc\+Message}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{send\+Rpc\+Message(\+String exchange\+Name, String routing\+Key, String message)}{sendRpcMessage(String exchangeName, String routingKey, String message)}}]{\setlength{\rightskip}{0pt plus 5cm}String eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Rpc\+Message (
-\begin{DoxyParamCaption}
-\item[{String}]{exchange\+Name, }
-\item[{String}]{routing\+Key, }
-\item[{String}]{message}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a822ebbed01755311ca9038bb7fa43591}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a822ebbed01755311ca9038bb7fa43591}
+\subsubsection{\texorpdfstring{send\+Rpc\+Message()}{sendRpcMessage()}}
+{\footnotesize\ttfamily String eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Rpc\+Message (\begin{DoxyParamCaption}\item[{String}]{exchange\+Name,  }\item[{String}]{routing\+Key,  }\item[{String}]{message }\end{DoxyParamCaption})}
+
 Method used to send message via R\+PC (Remote Procedure Call) pattern. In this implementation it covers asynchronous Rabbit communication with synchronous one, as it is used by conventional R\+E\+ST facade. Before sending a message, a temporary response queue is declared and its name is passed along with the message. When a consumer handles the message, it returns the result via the response queue. Since this is a synchronous pattern, it uses timeout of 20 seconds. If the response doesn\textquotesingle{}t come in that time, the method returns with null result.
 
 
@@ -114,15 +147,12 @@ Method used to send message via R\+PC (Remote Procedure Call) pattern. In this i
 \begin{DoxyReturn}{Returns}
 response from the consumer or null if timeout occurs 
 \end{DoxyReturn}
+\mbox{\Hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a98ca7f2122e2e4bb12d2252163177f0e}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a98ca7f2122e2e4bb12d2252163177f0e}} 
 \index{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}!send\+Rpc\+Resource\+Message@{send\+Rpc\+Resource\+Message}}
 \index{send\+Rpc\+Resource\+Message@{send\+Rpc\+Resource\+Message}!eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager@{eu\+::h2020\+::symbiote\+::communication\+::\+Rabbit\+Manager}}
-\subsubsection[{\texorpdfstring{send\+Rpc\+Resource\+Message(\+String exchange\+Name, String routing\+Key, Resource resource)}{sendRpcResourceMessage(String exchangeName, String routingKey, Resource resource)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Rpc\+Resource\+Response} eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Rpc\+Resource\+Message (
-\begin{DoxyParamCaption}
-\item[{String}]{exchange\+Name, }
-\item[{String}]{routing\+Key, }
-\item[{{\bf Resource}}]{resource}
-\end{DoxyParamCaption}
-)}\hypertarget{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a6808181b7e4c15f2df78ce4fad849410}{}\label{classeu_1_1h2020_1_1symbiote_1_1communication_1_1RabbitManager_a6808181b7e4c15f2df78ce4fad849410}
+\subsubsection{\texorpdfstring{send\+Rpc\+Resource\+Message()}{sendRpcResourceMessage()}}
+{\footnotesize\ttfamily Core\+Resource\+Registry\+Response eu.\+h2020.\+symbiote.\+communication.\+Rabbit\+Manager.\+send\+Rpc\+Resource\+Message (\begin{DoxyParamCaption}\item[{String}]{exchange\+Name,  }\item[{String}]{routing\+Key,  }\item[{Core\+Resource\+Registry\+Request}]{core\+Resource\+Request }\end{DoxyParamCaption})}
+
 Helper method that provides J\+S\+ON marshalling and unmarshalling for the sake of Rabbit communication.
 
 
@@ -131,7 +161,7 @@ Helper method that provides J\+S\+ON marshalling and unmarshalling for the sake 
 \hline
 {\em routing\+Key} & routing key to send message to \\
 \hline
-{\em resource} & resource to be sent \\
+{\em core\+Resource\+Request} & resource to be sent \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
