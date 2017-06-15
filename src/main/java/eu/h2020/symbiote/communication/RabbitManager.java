@@ -1,9 +1,11 @@
 package eu.h2020.symbiote.communication;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
-import eu.h2020.symbiote.model.Resource;
-import eu.h2020.symbiote.model.RpcResourceResponse;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
+import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +59,24 @@ public class RabbitManager {
     @Value("${rabbit.routingKey.resource.modificationRequested}")
     private String resourceModificationRequestedRoutingKey;
 
+    @Value("${rabbit.exchange.crm.name}")
+    private String crmExchangeName;
+
+    @Value("${rabbit.exchange.crm.type}")
+    private String crmExchangeType;
+
+    @Value("${rabbit.exchange.crm.durable}")
+    private boolean crmExchangeDurable;
+
+    @Value("${rabbit.exchange.crm.autodelete}")
+    private boolean crmExchangeAutodelete;
+
+    @Value("${rabbit.exchange.crm.internal}")
+    private boolean crmExchangeInternal;
+
+    @Value("${rabbit.routingKey.crm.monitoring}")
+    private String crmMonitoringRoutingKey;
+
     private Connection connection;
     private Channel channel;
 
@@ -83,10 +103,15 @@ public class RabbitManager {
                     this.resourceExchangeInternal,
                     null);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+            this.channel.exchangeDeclare(this.crmExchangeName,
+                    this.crmExchangeType,
+                    this.crmExchangeDurable,
+                    this.crmExchangeAutodelete,
+                    this.crmExchangeInternal,
+                    null);
+
+        } catch (IOException | TimeoutException e) {
+            log.error("Error while initiating communication via RabbitMQ", e);
         }
     }
 
@@ -100,10 +125,8 @@ public class RabbitManager {
                 this.channel.close();
             if (this.connection != null && this.connection.isOpen())
                 this.connection.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        } catch (IOException | TimeoutException e) {
+            log.error("Error while closing connection with RabbitMQ", e);
         }
     }
 
@@ -120,6 +143,8 @@ public class RabbitManager {
      * @return response from the consumer or null if timeout occurs
      */
     public String sendRpcMessage(String exchangeName, String routingKey, String message) {
+        QueueingConsumer consumer = new QueueingConsumer(channel);
+
         try {
             log.debug("Sending message...");
 
@@ -130,45 +155,81 @@ public class RabbitManager {
                     .builder()
                     .correlationId(correlationId)
                     .replyTo(replyQueueName)
+                    .contentType("application/json")
                     .build();
 
-            QueueingConsumer consumer = new QueueingConsumer(channel);
-            this.channel.basicConsume(replyQueueName, true, consumer);
+            channel.basicConsume(replyQueueName, true, consumer);
 
             String responseMsg = null;
 
             this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
             while (true) {
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery(20000);
-                if (delivery == null)
+                if (delivery == null) {
+                    log.info("Timeout in response retrieval");
                     return null;
+                }
 
                 if (delivery.getProperties().getCorrelationId().equals(correlationId)) {
+                    log.debug("Got reply with correlationId: " + correlationId);
                     responseMsg = new String(delivery.getBody());
                     break;
+                } else {
+                    log.debug("Got answer with wrong correlationId... should be " + correlationId + " but got " + delivery.getProperties().getCorrelationId());
                 }
             }
+            log.debug("Finished rpc loop");
 
             return responseMsg;
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Error while sending RPC Message via RabbitMQ", e);
+        } finally {
+            try {
+                this.channel.basicCancel(consumer.getConsumerTag());
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
         return null;
+    }
+
+
+    /**
+     * Method used to send an asynchronous message, without expecting any returning result.
+     * Exchange should be declared before sending the message.
+     *
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param message      message to be sent
+     * @return true if publish went ok, false otherwise
+     */
+    public boolean sendAsyncMessage(String exchangeName, String routingKey, String message) {
+        try {
+            AMQP.BasicProperties props = new AMQP.BasicProperties()
+                    .builder()
+                    .contentType("application/json")
+                    .build();
+            this.channel.basicPublish(exchangeName, routingKey, props, message.getBytes());
+            return true;
+        } catch (IOException e) {
+            log.error("Error while sending async message via RabbitMQ", e);
+            return false;
+        }
     }
 
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName name of the exchange to send message to
-     * @param routingKey   routing key to send message to
-     * @param resource     resource to be sent
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param coreResourceRequest resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
-    public RpcResourceResponse sendRpcResourceMessage(String exchangeName, String routingKey, Resource resource) {
+    public CoreResourceRegistryResponse sendRpcResourceMessage(String exchangeName, String routingKey, CoreResourceRegistryRequest coreResourceRequest) {
         try {
             String message;
             ObjectMapper mapper = new ObjectMapper();
-            message = mapper.writeValueAsString(resource);
+            message = mapper.writeValueAsString(coreResourceRequest);
 
             String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
 
@@ -176,10 +237,9 @@ public class RabbitManager {
                 return null;
 
             mapper = new ObjectMapper();
-            RpcResourceResponse response = mapper.readValue(responseMsg, RpcResourceResponse.class);
-            return response;
+            return mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
         } catch (IOException e) {
-            log.error("Failed (un)marshalling of rpc resource message");
+            log.error("Failed (un)marshalling of rpc resource message", e);
         }
         return null;
     }
@@ -187,30 +247,48 @@ public class RabbitManager {
     /**
      * Method used to send RPC request to create resource.
      *
-     * @param resource resource to be created
+     * @param coreResourceRequest resource to be created
      * @return object containing status of requested operation and, if successful, a resource object containing assigned ID
      */
-    public RpcResourceResponse sendResourceCreationRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceCreationRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceCreationRequestedRoutingKey, coreResourceRequest);
     }
 
     /**
      * Method used to send RPC request to remove resource.
      *
-     * @param resource resource to be removed
+     * @param coreResourceRequest resource to be removed
      * @return object containing status of requested operation and, if successful, a resource object
      */
-    public RpcResourceResponse sendResourceRemovalRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceRemovalRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceRemovalRequestedRoutingKey, coreResourceRequest);
     }
 
     /**
      * Method used to send RPC request to modify resource.
      *
-     * @param resource resource to be modified
+     * @param coreResourceRequest resource to be modified
      * @return object containing status of requested operation and, if successful, a resource object
      */
-    public RpcResourceResponse sendResourceModificationRequest(Resource resource) {
-        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, resource);
+    public CoreResourceRegistryResponse sendResourceModificationRequest(CoreResourceRegistryRequest coreResourceRequest) {
+        return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, coreResourceRequest);
+    }
+
+    /**
+     * Method used to send asynchronous, monitoring message to Core Resource Monitor.
+     *
+     * @param cloudMonitoringPlatform message from platform
+     * @return true if message is sent ok, false otherwise
+     */
+    public boolean sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String message = mapper.writeValueAsString(cloudMonitoringPlatform);
+            return sendAsyncMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, message);
+        } catch (JsonProcessingException e) {
+            log.error("Error while processing JSON request", e);
+            return false;
+        }
+
     }
 }

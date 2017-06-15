@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.4.1.RELEASE'
+        springBootVersion = '1.5.2.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -21,7 +21,7 @@ apply plugin: 'jacoco'
 
 jar {
     baseName = 'CloudCoreInterface'
-    version =  '0.0.1'
+    version =  '0.0.2'
 }
 
 repositories {
@@ -34,17 +34,37 @@ repositories {
     }
 }
 
+configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+
+    /* SymbIoTeLibraries manual:
+        One can use the library from jitpack by default with the notation:
+            compile('com.github.symbiote-h2020:SymbIoTeLibraries:develop-SNAPSHOT') {changing = true }
+        or having cloned locally the SymbIoTeLibraries repo use it directly with project dependency by:
+            compile project(':SymbIoTeLibraries')
+        Important --- In order to use the latter you need to:
+            1) switch comments on the artifact and project dependencies
+            2) always have only one uncommented
+            3) project dependency requires changes in settings.gradle file in this project
+            4) never commit build.gradle which has project dependencies active as it will break CI builds
+    */
+    // compile('com.github.symbiote-h2020:SymbIoTeLibraries:develop-SNAPSHOT') { changing = true }
+    compile('com.github.symbiote-h2020:SymbIoTeLibraries:0.2.0')
+
+
     compile('org.springframework.cloud:spring-cloud-starter-config')
     compile('org.springframework.cloud:spring-cloud-starter-eureka')
     compile('org.springframework.cloud:spring-cloud-starter-zipkin') // Causes the java.net.ConnectException
     compile('org.springframework.cloud:spring-cloud-starter-stream-rabbit')
     compile('org.springframework.boot:spring-boot-starter-data-rest')
     compile('org.springframework.boot:spring-boot-starter-web')
-    compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
 
@@ -55,8 +75,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Camden.RELEASE"
-        mavenBom 'org.springframework.cloud:spring-cloud-sleuth:1.1.0.BUILD-SNAPSHOT'
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Dalston.RELEASE"
     }
 }
 
