@@ -12,6 +12,10 @@ import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
 import eu.h2020.symbiote.core.model.resources.Resource;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,11 +167,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
+    @ApiOperation(value = "Register resources (RDF)",
+            notes = "Register resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity createRdfResources(@PathVariable("platformId") String platformId,
-                                             @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                             @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity createRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                             @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                             @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for creation of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -182,11 +191,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return modified resources with appropriate HTTP status code
      */
+    @ApiOperation(value = "Modify resources (RDF)",
+            notes = "Modify registered resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity modifyRdfResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity modifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for modification of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -201,11 +215,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return deleted resources with appropriate HTTP status code
      */
+    @ApiOperation(value = "Delete resources (RDF)",
+            notes = "Delete registered resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity deleteRdfResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity deleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for removal of RDF resources");
 
         CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
@@ -221,11 +240,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
+    @ApiOperation(value = "Create resources (JSON)",
+            notes = "Create resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity createResources(@PathVariable("platformId") String platformId,
-                                          @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                          @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity createResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                          @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                          @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for creation of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
@@ -241,11 +265,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return modified resource or null along with appropriate error HTTP status code
      */
+    @ApiOperation(value = "Modify resources (JSON)",
+            notes = "Modify resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity modifyResource(@PathVariable("platformId") String platformId,
-                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity modifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for modification of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
@@ -260,11 +289,16 @@ public class CloudCoreInterfaceController {
      * @param token                   authorization token
      * @return empty body with appropriate operation HTTP status code
      */
+    @ApiOperation(value = "Delete resources (JSON)",
+            notes = "Delete resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity deleteResource(@PathVariable("platformId") String platformId,
-                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity deleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Request for removal of basic resources");
 
         CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
@@ -279,11 +313,16 @@ public class CloudCoreInterfaceController {
      * @param token                   autohrization token
      * @return empty response with apropriate HTTP status code
      */
+    @ApiOperation(value = "Device status update",
+            notes = "Notify Core Resource Monitor of platform status",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
-    public ResponseEntity monitoring(@PathVariable("platformId") String platformId,
-                                     @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
-                                     @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity monitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
+                                     @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                     @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
         log.debug("Cloud monitoring platform received");
 
         boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);

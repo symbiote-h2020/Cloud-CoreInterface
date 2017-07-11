@@ -9,16 +9,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.service.*;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
 import static springfox.documentation.builders.PathSelectors.ant;
 
 @EnableSwagger2
@@ -41,6 +40,7 @@ public class SwaggerConfig {
 //                        ),
 //                        new ApiKey("api_key", "api_key", "header")
 //                ))
+                .host("https://symbiote.man.poznan.pl:8101")
                 .produces(producesSet())
                 .select()
                 .paths(Predicates.and(ant("/**"), Predicates.not(ant("/error")), Predicates.not(ant("/management/**")), Predicates.not(ant("/management*"))))
@@ -49,9 +49,9 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title(" Cloud Core Interface")
+                .title("Cloud Core Interface")
                 .description("SymbIoTe CloudCoreInterface Description")
-                .contact(new Contact("TestName", "http:/test-url.com", "test@test.de"))
+                .contact(new Contact("Artur Jaworski", "https://www.symbiote-h2020.eu/", "artur.jaworski@man.poznan.pl"))
                 .license("GNU Lesser General Public License v3.0")
                 .licenseUrl("https://github.com/symbiote-h2020/CloudCoreInterface/blob/master/LICENSE.txt")
                 .version("0.2.0")
