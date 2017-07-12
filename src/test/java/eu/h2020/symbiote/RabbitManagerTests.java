@@ -18,6 +18,7 @@ import static org.mockito.Mockito.spy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RabbitManagerTests {
+
     @Test
     public void testSendResourceCreationRequest_timeout() {
         RabbitManager rabbitManager = spy(new RabbitManager());
