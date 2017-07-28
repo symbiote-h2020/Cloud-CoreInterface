@@ -24,7 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Class defining all REST endpoints.
@@ -86,7 +86,7 @@ public class CloudCoreInterfaceController {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            String resourcesJson = mapper.writerFor(new TypeReference<List<Resource>>() {
+            String resourcesJson = mapper.writerFor(new TypeReference<Map<String, Resource>>() {
             }).writeValueAsString(resourceRegistryRequest.getResources());
             coreRequest.setBody(resourcesJson);
 
@@ -135,12 +135,12 @@ public class CloudCoreInterfaceController {
 
         log.debug("Response from Core Services received: " + coreResponse.getStatus() + ", " + coreResponse.getMessage() + ", " + coreResponse.getBody());
 
-        List<Resource> responseListOfResources = null;
+        Map<String, Resource> responseMapOfResources = null;
 
         if (coreResponse.getBody() != null) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                responseListOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<List<Resource>>() {
+                responseMapOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<Map<String, Resource>>() {
                 });
             } catch (IOException e) {
                 log.error("Error while parsing response body from Core Services", e);
@@ -151,7 +151,7 @@ public class CloudCoreInterfaceController {
         }
 
         response.setMessage(coreResponse.getMessage());
-        response.setResources(responseListOfResources);
+        response.setResources(responseMapOfResources);
 
         log.debug("ResourceRegistryResponse created and returned to endpoint");
 
@@ -171,6 +171,7 @@ public class CloudCoreInterfaceController {
             notes = "Register resources using extended RDF description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
@@ -195,6 +196,7 @@ public class CloudCoreInterfaceController {
             notes = "Modify registered resources using extended RDF description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
@@ -219,6 +221,7 @@ public class CloudCoreInterfaceController {
             notes = "Delete registered resources using extended RDF description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
@@ -244,6 +247,7 @@ public class CloudCoreInterfaceController {
             notes = "Create resources using basic JSON description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
@@ -269,6 +273,7 @@ public class CloudCoreInterfaceController {
             notes = "Modify resources using basic JSON description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
@@ -293,6 +298,7 @@ public class CloudCoreInterfaceController {
             notes = "Delete resources using basic JSON description",
             response = ResourceRegistryResponse.class)
     @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
