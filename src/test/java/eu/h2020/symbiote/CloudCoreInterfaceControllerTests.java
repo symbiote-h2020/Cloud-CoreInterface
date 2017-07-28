@@ -74,7 +74,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -105,7 +105,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(rabbitResponse);
@@ -116,7 +116,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -167,7 +167,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceModificationRequest(any())).thenReturn(rabbitResponse);
@@ -178,7 +178,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
@@ -198,7 +198,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -229,7 +229,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceRemovalRequest(any())).thenReturn(rabbitResponse);
@@ -240,7 +240,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
@@ -255,7 +255,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -286,7 +286,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(rabbitResponse);
@@ -297,7 +297,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
@@ -312,7 +312,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -343,7 +343,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceModificationRequest(any())).thenReturn(rabbitResponse);
@@ -354,7 +354,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
@@ -369,7 +369,7 @@ public class CloudCoreInterfaceControllerTests {
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
         rabbitResponse.setBody(
-                "[" +
+                "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
                         "\"labels\":[\"Stationary 1\"]," +
@@ -400,7 +400,7 @@ public class CloudCoreInterfaceControllerTests {
                         "\"Humidity\"" +
                         "]" +
                         "}" +
-                        "]");
+                        "}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceRemovalRequest(any())).thenReturn(rabbitResponse);
@@ -411,7 +411,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get(0).getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
     }
 
     @Test
