@@ -12,6 +12,8 @@ import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
 import eu.h2020.symbiote.core.model.resources.Resource;
+import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
+import eu.h2020.symbiote.security.communication.payloads.SecurityRequest;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -19,6 +21,7 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,9 +55,9 @@ public class CloudCoreInterfaceController {
         this.rabbitManager = rabbitManager;
     }
 
-    private CoreResourceRegistryRequest prepareRdfRequest(String platformId, RDFResourceRegistryRequest resourceRegistryRequest, String token) {
+    private CoreResourceRegistryRequest prepareRdfRequest(String platformId, RDFResourceRegistryRequest resourceRegistryRequest, SecurityRequest securityRequest) {
         CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
-        coreRequest.setToken(token);
+        coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.RDF);
         coreRequest.setPlatformId(platformId);
 
@@ -74,12 +77,12 @@ public class CloudCoreInterfaceController {
         return coreRequest;
     }
 
-    private CoreResourceRegistryRequest prepareBasicRequest(String platformId, ResourceRegistryRequest resourceRegistryRequest, String token) {
+    private CoreResourceRegistryRequest prepareBasicRequest(String platformId, ResourceRegistryRequest resourceRegistryRequest, SecurityRequest securityRequest) {
         if (resourceRegistryRequest == null)
             return null;
 
         CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
-        coreRequest.setToken(token);
+        coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.BASIC);
         coreRequest.setPlatformId(platformId);
 
@@ -158,13 +161,22 @@ public class CloudCoreInterfaceController {
         return new ResponseEntity<>(response, HttpStatus.valueOf(coreResponse.getStatus()));
     }
 
+    private ResponseEntity handleBadSecurityHeaders(InvalidArgumentsException e){
+        log.error("No proper security headers passed", e);
+        ResourceRegistryResponse response = new ResourceRegistryResponse();
+        response.setStatus(401);
+        response.setMessage("Invalid security headers");
+        response.setResources(null);
+
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
 
     /**
      * Endpoint for creating resources using RDF description.
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be registered
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
     @ApiOperation(value = "Register resources (RDF)",
@@ -177,11 +189,17 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity createRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                              @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                             @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for creation of RDF resources");
-
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -189,7 +207,7 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be modified
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return modified resources with appropriate HTTP status code
      */
     @ApiOperation(value = "Modify resources (RDF)",
@@ -202,11 +220,18 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity modifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                             @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for modification of RDF resources");
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e){
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -214,7 +239,7 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be deleted
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return deleted resources with appropriate HTTP status code
      */
     @ApiOperation(value = "Delete resources (RDF)",
@@ -227,11 +252,18 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity deleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                             @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for removal of RDF resources");
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e){
+            return handleBadSecurityHeaders(e);
+        }
 
     }
 
@@ -240,7 +272,7 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be registered
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
     @ApiOperation(value = "Create resources (JSON)",
@@ -253,11 +285,18 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity createResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                           @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                          @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for creation of basic resources");
+                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e){
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -266,7 +305,7 @@ public class CloudCoreInterfaceController {
      * @param platformId              ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
      *                                it will be overwritten by path parameter
      * @param resourceRegistryRequest request containing resources to be modified
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return modified resource or null along with appropriate error HTTP status code
      */
     @ApiOperation(value = "Modify resources (JSON)",
@@ -279,11 +318,18 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity modifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                          @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for modification of basic resources");
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e){
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -291,7 +337,7 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resource belongs to
      * @param resourceRegistryRequest request containing resources to be removed
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return empty body with appropriate operation HTTP status code
      */
     @ApiOperation(value = "Delete resources (JSON)",
@@ -304,11 +350,18 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity deleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                          @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for removal of basic resources");
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e){
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -316,7 +369,7 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform
      * @param cloudMonitoringPlatform status of platform to be sent to CRM
-     * @param token                   autohrization token
+     * @param httpHeaders             request headers
      * @return empty response with apropriate HTTP status code
      */
     @ApiOperation(value = "Device status update",
@@ -328,7 +381,9 @@ public class CloudCoreInterfaceController {
             value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
     public ResponseEntity monitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
                                      @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
-                                     @ApiParam(value = "A valid token issued by a member of the SymbIoTe Security Roaming", required = true) @RequestHeader("X-Auth-Token") String token) {
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        //TODO apply new token policies
+
         log.debug("Cloud monitoring platform received");
 
         boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);

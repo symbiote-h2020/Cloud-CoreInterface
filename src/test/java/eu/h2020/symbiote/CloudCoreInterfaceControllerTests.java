@@ -13,10 +13,12 @@ import eu.h2020.symbiote.core.model.RDFInfo;
 import eu.h2020.symbiote.core.model.SymbolicLocation;
 import eu.h2020.symbiote.core.model.resources.FeatureOfInterest;
 import eu.h2020.symbiote.core.model.resources.StationarySensor;
+import eu.h2020.symbiote.security.commons.SecurityConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -35,22 +37,114 @@ public class CloudCoreInterfaceControllerTests {
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(null);
 
-        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity<?> response = controller.createResources(null, new ResourceRegistryRequest(), null);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
-        assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createResources(null, new ResourceRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createResources(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testCreateResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createResources(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testModifyResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifyResource(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testModifyResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifyResource(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testDeleteResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteResource(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testDeleteResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteResource(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
     }
 
     @Test
     public void testCreateResource_badRequest() {
-        CoreResourceRegistryResponse coreResourceRegistryResponse = new CoreResourceRegistryResponse();
-        coreResourceRegistryResponse.setStatus(400);
-
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(coreResourceRegistryResponse);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity<?> response = controller.createResources(null, null, null);
+        ResponseEntity<?> response = controller.createResources(null, null, headers);
 
         assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
 
@@ -70,6 +164,14 @@ public class CloudCoreInterfaceControllerTests {
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
@@ -86,8 +188,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -111,12 +213,48 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.createResources("platformId", request, "token");
+        ResponseEntity response = controller.createResources("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
         assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+    }
+
+    @Test
+    public void testMalformedResponseFromCore() {
+        StationarySensor stationarySensor = new StationarySensor();
+        stationarySensor.setLabels(Arrays.asList(new String[]{"Stationary 1"}));
+        stationarySensor.setComments(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setInterworkingServiceURL("http://example.com");
+        stationarySensor.setLocatedAt(new SymbolicLocation());
+        stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
+        stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
+
+        ResourceRegistryRequest request = new ResourceRegistryRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody("<Malformed response body>");
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.createResources("platformId", request, headers);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof ResourceRegistryResponse);
     }
 
     @Test
@@ -131,6 +269,16 @@ public class CloudCoreInterfaceControllerTests {
         stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
 
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
@@ -148,8 +296,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -173,7 +321,7 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceModificationRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.modifyResource("platformId", request, "token");
+        ResponseEntity response = controller.modifyResource("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -194,6 +342,14 @@ public class CloudCoreInterfaceControllerTests {
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
@@ -210,8 +366,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -235,12 +391,38 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceRemovalRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.deleteResource("platformId", request, "token");
+        ResponseEntity response = controller.deleteResource("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
         assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+    }
+
+    @Test
+    public void testCreateRdfResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createRdfResources(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testCreateRdfResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createRdfResources(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
     }
 
     @Test
@@ -251,6 +433,15 @@ public class CloudCoreInterfaceControllerTests {
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
         request.setRdfInfo(rdfInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
@@ -267,8 +458,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -292,12 +483,38 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceCreationRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.createRdfResources("platformId", request, "token");
+        ResponseEntity response = controller.createRdfResources("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
         assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+    }
+
+    @Test
+    public void testModifyRdfResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifyRdfResource(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testModifyRdfResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifyRdfResource(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
     }
 
     @Test
@@ -308,6 +525,15 @@ public class CloudCoreInterfaceControllerTests {
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
         request.setRdfInfo(rdfInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
@@ -324,8 +550,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -349,12 +575,38 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceModificationRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.modifyRdfResource("platformId", request, "token");
+        ResponseEntity response = controller.modifyRdfResource("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
         assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+    }
+
+    @Test
+    public void testDeleteRdfResource_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteRdfResource(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
+    }
+
+    @Test
+    public void testDeleteRdfResource_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteRdfResource(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getResources());
     }
 
     @Test
@@ -365,6 +617,15 @@ public class CloudCoreInterfaceControllerTests {
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
         request.setRdfInfo(rdfInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
         rabbitResponse.setStatus(200);
@@ -381,8 +642,8 @@ public class CloudCoreInterfaceControllerTests {
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": \"Location\"," +
-                        "\"description\": \"This is location\"" +
+                        "\"name\": [\"Location\"]," +
+                        "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
                         "\"labels\": [" +
@@ -406,7 +667,7 @@ public class CloudCoreInterfaceControllerTests {
         when(rabbitManager.sendResourceRemovalRequest(any())).thenReturn(rabbitResponse);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.deleteRdfResource("platformId", request, "token");
+        ResponseEntity response = controller.deleteRdfResource("platformId", request, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -426,11 +687,20 @@ public class CloudCoreInterfaceControllerTests {
         cloudMonitoringPlatform.setInternalId("platformId");
         cloudMonitoringPlatform.setDevices(new CloudMonitoringDevice[]{cloudMonitoringDevice});
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendMonitoringMessage(any())).thenReturn(false);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, "token");
+        ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, headers);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNull(response.getBody());
@@ -448,11 +718,20 @@ public class CloudCoreInterfaceControllerTests {
         cloudMonitoringPlatform.setInternalId("platformId");
         cloudMonitoringPlatform.setDevices(new CloudMonitoringDevice[]{cloudMonitoringDevice});
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
         when(rabbitManager.sendMonitoringMessage(any())).thenReturn(true);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, "token");
+        ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
