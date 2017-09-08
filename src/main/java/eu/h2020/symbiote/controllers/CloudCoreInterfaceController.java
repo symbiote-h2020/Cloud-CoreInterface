@@ -64,7 +64,7 @@ public class CloudCoreInterfaceController {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getRdfInfo());
+            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getBody());
             coreRequest.setBody(resourcesJson);
 
             log.debug("Request for Core Services prepared");
@@ -90,7 +90,7 @@ public class CloudCoreInterfaceController {
             ObjectMapper mapper = new ObjectMapper();
 
             String resourcesJson = mapper.writerFor(new TypeReference<Map<String, Resource>>() {
-            }).writeValueAsString(resourceRegistryRequest.getResources());
+            }).writeValueAsString(resourceRegistryRequest.getBody());
             coreRequest.setBody(resourcesJson);
 
             log.debug("Request for Core Services prepared");
@@ -110,7 +110,7 @@ public class CloudCoreInterfaceController {
         if (coreResourceRegistryRequest == null) {
             log.error("Error while handling resource request");
             response.setMessage("Error while parsing message body. No data has been processed by Core Services.");
-            response.setResources(null);
+            response.setBody(null);
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
@@ -132,7 +132,7 @@ public class CloudCoreInterfaceController {
         if (coreResponse == null) {
             log.debug("Timeout on handling request by Core Services");
             response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
-            response.setResources(null);
+            response.setBody(null);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -148,13 +148,13 @@ public class CloudCoreInterfaceController {
             } catch (IOException e) {
                 log.error("Error while parsing response body from Core Services", e);
                 response.setMessage("Error while parsing response body from Core Service. Operation might have been performed, but response was malformed.");
-                response.setResources(null);
+                response.setBody(null);
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
         response.setMessage(coreResponse.getMessage());
-        response.setResources(responseMapOfResources);
+        response.setBody(responseMapOfResources);
 
         log.debug("ResourceRegistryResponse created and returned to endpoint");
 
@@ -166,7 +166,7 @@ public class CloudCoreInterfaceController {
         ResourceRegistryResponse response = new ResourceRegistryResponse();
         response.setStatus(401);
         response.setMessage("Invalid security headers");
-        response.setResources(null);
+        response.setBody(null);
 
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
     }

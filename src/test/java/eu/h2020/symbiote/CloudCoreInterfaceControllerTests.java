@@ -62,7 +62,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -75,7 +75,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -127,7 +127,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -218,7 +218,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
@@ -326,7 +326,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
@@ -396,7 +396,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
@@ -409,7 +409,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -422,7 +422,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -432,7 +432,7 @@ public class CloudCoreInterfaceControllerTests {
         rdfInfo.setRdfFormat(RDFFormat.Turtle);
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
-        request.setRdfInfo(rdfInfo);
+        request.setBody(rdfInfo);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -488,7 +488,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
@@ -501,7 +501,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -514,7 +514,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -524,7 +524,7 @@ public class CloudCoreInterfaceControllerTests {
         rdfInfo.setRdfFormat(RDFFormat.Turtle);
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
-        request.setRdfInfo(rdfInfo);
+        request.setBody(rdfInfo);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -580,7 +580,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
@@ -593,7 +593,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -606,7 +606,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
         ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
-        assertNull(regResponse.getResources());
+        assertNull(regResponse.getBody());
     }
 
     @Test
@@ -616,7 +616,7 @@ public class CloudCoreInterfaceControllerTests {
         rdfInfo.setRdfFormat(RDFFormat.Turtle);
 
         RDFResourceRegistryRequest request = new RDFResourceRegistryRequest();
-        request.setRdfInfo(rdfInfo);
+        request.setBody(rdfInfo);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -672,7 +672,7 @@ public class CloudCoreInterfaceControllerTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof ResourceRegistryResponse);
-        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getResources().get("id1").getId());
+        assertEquals("testId", ((ResourceRegistryResponse) response.getBody()).getBody().get("id1").getId());
     }
 
     @Test
