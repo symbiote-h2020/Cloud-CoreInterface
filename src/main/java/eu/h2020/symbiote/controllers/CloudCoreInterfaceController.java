@@ -12,6 +12,7 @@ import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
 import eu.h2020.symbiote.core.model.resources.Resource;
+import eu.h2020.symbiote.security.commons.SecurityConstants;
 import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
 import eu.h2020.symbiote.security.communication.payloads.SecurityRequest;
 import io.swagger.annotations.ApiOperation;
@@ -24,9 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -133,7 +137,7 @@ public class CloudCoreInterfaceController {
             log.debug("Timeout on handling request by Core Services");
             response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
             response.setBody(null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         log.debug("Response from Core Services received: " + coreResponse.getStatus() + ", " + coreResponse.getMessage() + ", " + coreResponse.getBody());
@@ -149,7 +153,7 @@ public class CloudCoreInterfaceController {
                 log.error("Error while parsing response body from Core Services", e);
                 response.setMessage("Error while parsing response body from Core Service. Operation might have been performed, but response was malformed.");
                 response.setBody(null);
-                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -158,7 +162,15 @@ public class CloudCoreInterfaceController {
 
         log.debug("ResourceRegistryResponse created and returned to endpoint");
 
-        return new ResponseEntity<>(response, HttpStatus.valueOf(coreResponse.getStatus()));
+        return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.valueOf(coreResponse.getStatus()));
+    }
+
+    private HttpHeaders getHeadersForCoreResponse( CoreResourceRegistryResponse response ) {
+        HttpHeaders headers = new HttpHeaders();
+        if( response != null && response.getServiceResponse() != null ) {
+            headers.put(SecurityConstants.SECURITY_RESPONSE_HEADER, Arrays.asList(response.getServiceResponse()));
+        }
+        return headers;
     }
 
     private ResponseEntity handleBadSecurityHeaders(InvalidArgumentsException e){
