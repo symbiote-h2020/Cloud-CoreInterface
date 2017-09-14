@@ -68,7 +68,7 @@ public class CloudCoreInterfaceController {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getBody());
+            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest);
             coreRequest.setBody(resourcesJson);
 
             log.debug("Request for Core Services prepared");
