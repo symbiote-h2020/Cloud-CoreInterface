@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import org.apache.commons.logging.Log;
@@ -77,6 +78,24 @@ public class RabbitManager {
     @Value("${rabbit.routingKey.crm.monitoring}")
     private String crmMonitoringRoutingKey;
 
+    @Value("${rabbit.exchange.cram.name}")
+    private String cramExchangeName;
+
+    @Value("${rabbit.exchange.cram.type}")
+    private String cramExchangeType;
+
+    @Value("${rabbit.exchange.cram.durable}")
+    private boolean cramExchangeDurable;
+
+    @Value("${rabbit.exchange.cram.autodelete}")
+    private boolean cramExchangeAutodelete;
+
+    @Value("${rabbit.exchange.cram.internal}")
+    private boolean cramExchangeInternal;
+
+    @Value("${rabbit.routingKey.cram.accessNotifications}")
+    private String cramAccessNotificationRoutingKey;
+
     private Connection connection;
     private Channel channel;
 
@@ -93,7 +112,7 @@ public class RabbitManager {
      * @param exchangeAutodelete
      * @param exchangeInternal
      */
-    public void setTestParameters(String rabbitHost, String rabbitUsername, String rabbitPassword, String exchangeName, String exchangeType, boolean exchangeDurable, boolean exchangeAutodelete, boolean exchangeInternal){
+    public void setTestParameters(String rabbitHost, String rabbitUsername, String rabbitPassword, String exchangeName, String exchangeType, boolean exchangeDurable, boolean exchangeAutodelete, boolean exchangeInternal) {
         this.rabbitHost = rabbitHost;
         this.rabbitUsername = rabbitUsername;
         this.rabbitPassword = rabbitPassword;
@@ -109,6 +128,12 @@ public class RabbitManager {
         this.resourceExchangeDurable = exchangeDurable;
         this.resourceExchangeAutodelete = exchangeAutodelete;
         this.resourceExchangeInternal = exchangeInternal;
+
+        this.cramExchangeName = exchangeName;
+        this.cramExchangeType = exchangeType;
+        this.cramExchangeDurable = exchangeDurable;
+        this.cramExchangeAutodelete = exchangeAutodelete;
+        this.cramExchangeInternal = exchangeInternal;
     }
 
     /**
@@ -139,6 +164,13 @@ public class RabbitManager {
                     this.crmExchangeDurable,
                     this.crmExchangeAutodelete,
                     this.crmExchangeInternal,
+                    null);
+
+            this.channel.exchangeDeclare(this.cramExchangeName,
+                    this.cramExchangeType,
+                    this.cramExchangeDurable,
+                    this.cramExchangeAutodelete,
+                    this.cramExchangeInternal,
                     null);
 
         } catch (IOException | TimeoutException e) {
@@ -324,12 +356,30 @@ public class RabbitManager {
     }
 
     /**
+     * Method used to send asynchronous, access notification message to Core Resource Access Monitor.
+     *
+     * @param notificationMessage access notification message
+     * @return true if message is sent ok, false otherwise
+     */
+    public boolean sendAccessNotificationMessage(NotificationMessage notificationMessage) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String message = mapper.writeValueAsString(notificationMessage);
+            return sendAsyncMessage(this.cramExchangeName, this.cramAccessNotificationRoutingKey, message);
+        } catch (JsonProcessingException e) {
+            log.error("Error while processing JSON request", e);
+            return false;
+        }
+
+    }
+
+    /**
      * Get current RabbitMQ channel.
      * Used ONLY dor unit testing.
      *
      * @return current RabbitMQ channel
      */
-    public Channel getChannel(){
+    public Channel getChannel() {
         return this.channel;
     }
 }

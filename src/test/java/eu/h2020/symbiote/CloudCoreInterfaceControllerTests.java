@@ -7,6 +7,7 @@ import eu.h2020.symbiote.controllers.CloudCoreInterfaceController;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.model.RDFFormat;
 import eu.h2020.symbiote.core.model.RDFInfo;
@@ -734,6 +735,62 @@ public class CloudCoreInterfaceControllerTests {
         ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    public void testAccessNotification_fail() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(false);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    public void testAccessNotification_success() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(true);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    public void testAccessNotification_noHeaders() {
+        HttpHeaders headers = null;
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(true);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNull(response.getBody());
     }
 

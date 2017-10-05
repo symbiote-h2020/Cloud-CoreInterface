@@ -8,6 +8,7 @@ import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
@@ -25,12 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -165,15 +164,15 @@ public class CloudCoreInterfaceController {
         return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.valueOf(coreResponse.getStatus()));
     }
 
-    private HttpHeaders getHeadersForCoreResponse( CoreResourceRegistryResponse response ) {
+    private HttpHeaders getHeadersForCoreResponse(CoreResourceRegistryResponse response) {
         HttpHeaders headers = new HttpHeaders();
-        if( response != null && response.getServiceResponse() != null ) {
+        if (response != null && response.getServiceResponse() != null) {
             headers.put(SecurityConstants.SECURITY_RESPONSE_HEADER, Arrays.asList(response.getServiceResponse()));
         }
         return headers;
     }
 
-    private ResponseEntity handleBadSecurityHeaders(InvalidArgumentsException e){
+    private ResponseEntity handleBadSecurityHeaders(InvalidArgumentsException e) {
         log.error("No proper security headers passed", e);
         ResourceRegistryResponse response = new ResourceRegistryResponse();
         response.setStatus(401);
@@ -241,7 +240,7 @@ public class CloudCoreInterfaceController {
 
             CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
             return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
-        } catch (InvalidArgumentsException e){
+        } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
     }
@@ -273,7 +272,7 @@ public class CloudCoreInterfaceController {
 
             CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
             return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
-        } catch (InvalidArgumentsException e){
+        } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
 
@@ -306,7 +305,7 @@ public class CloudCoreInterfaceController {
 
             CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
             return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
-        } catch (InvalidArgumentsException e){
+        } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
     }
@@ -339,7 +338,7 @@ public class CloudCoreInterfaceController {
 
             CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
             return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
-        } catch (InvalidArgumentsException e){
+        } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
     }
@@ -371,7 +370,7 @@ public class CloudCoreInterfaceController {
 
             CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
             return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
-        } catch (InvalidArgumentsException e){
+        } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
     }
@@ -405,6 +404,39 @@ public class CloudCoreInterfaceController {
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
+    }
+
+    /**
+     * Endpoint for passing access notifications.
+     *
+     * @param notificationMessage access notification message
+     * @param httpHeaders         request headers
+     */
+    @ApiOperation(value = "Access notifications handler",
+            notes = "Access notifications handler")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Notification received OK"),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.POST,
+            value = URI_PREFIX + "/accessNotifications")
+    public ResponseEntity accessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
+                                              @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Access notification");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            boolean result = this.rabbitManager.sendAccessNotificationMessage(notificationMessage);
+
+            if (result)
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            else
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (InvalidArgumentsException e) {
+            log.error("No proper security headers passed", e);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
     }
 
 
