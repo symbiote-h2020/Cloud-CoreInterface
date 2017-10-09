@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import org.apache.commons.logging.Log;
@@ -77,8 +78,63 @@ public class RabbitManager {
     @Value("${rabbit.routingKey.crm.monitoring}")
     private String crmMonitoringRoutingKey;
 
+    @Value("${rabbit.exchange.cram.name}")
+    private String cramExchangeName;
+
+    @Value("${rabbit.exchange.cram.type}")
+    private String cramExchangeType;
+
+    @Value("${rabbit.exchange.cram.durable}")
+    private boolean cramExchangeDurable;
+
+    @Value("${rabbit.exchange.cram.autodelete}")
+    private boolean cramExchangeAutodelete;
+
+    @Value("${rabbit.exchange.cram.internal}")
+    private boolean cramExchangeInternal;
+
+    @Value("${rabbit.routingKey.cram.accessNotifications}")
+    private String cramAccessNotificationRoutingKey;
+
     private Connection connection;
     private Channel channel;
+
+    /**
+     * Method used to override connection parameters.
+     * Used ONLY for unit testing.
+     *
+     * @param rabbitHost
+     * @param rabbitUsername
+     * @param rabbitPassword
+     * @param exchangeName
+     * @param exchangeType
+     * @param exchangeDurable
+     * @param exchangeAutodelete
+     * @param exchangeInternal
+     */
+    public void setTestParameters(String rabbitHost, String rabbitUsername, String rabbitPassword, String exchangeName, String exchangeType, boolean exchangeDurable, boolean exchangeAutodelete, boolean exchangeInternal) {
+        this.rabbitHost = rabbitHost;
+        this.rabbitUsername = rabbitUsername;
+        this.rabbitPassword = rabbitPassword;
+
+        this.crmExchangeName = exchangeName;
+        this.crmExchangeType = exchangeType;
+        this.crmExchangeDurable = exchangeDurable;
+        this.crmExchangeAutodelete = exchangeAutodelete;
+        this.crmExchangeInternal = exchangeInternal;
+
+        this.resourceExchangeName = exchangeName;
+        this.resourceExchangeType = exchangeType;
+        this.resourceExchangeDurable = exchangeDurable;
+        this.resourceExchangeAutodelete = exchangeAutodelete;
+        this.resourceExchangeInternal = exchangeInternal;
+
+        this.cramExchangeName = exchangeName;
+        this.cramExchangeType = exchangeType;
+        this.cramExchangeDurable = exchangeDurable;
+        this.cramExchangeAutodelete = exchangeAutodelete;
+        this.cramExchangeInternal = exchangeInternal;
+    }
 
     /**
      * Method used to initialise RabbitMQ connection and declare all required exchanges.
@@ -110,6 +166,13 @@ public class RabbitManager {
                     this.crmExchangeInternal,
                     null);
 
+            this.channel.exchangeDeclare(this.cramExchangeName,
+                    this.cramExchangeType,
+                    this.cramExchangeDurable,
+                    this.cramExchangeAutodelete,
+                    this.cramExchangeInternal,
+                    null);
+
         } catch (IOException | TimeoutException e) {
             log.error("Error while initiating communication via RabbitMQ", e);
         }
@@ -119,7 +182,7 @@ public class RabbitManager {
      * Cleanup method, used to close RabbitMQ channel and connection.
      */
     @PreDestroy
-    private void cleanup() {
+    public void cleanup() {
         try {
             if (this.channel != null && this.channel.isOpen())
                 this.channel.close();
@@ -290,5 +353,33 @@ public class RabbitManager {
             return false;
         }
 
+    }
+
+    /**
+     * Method used to send asynchronous, access notification message to Core Resource Access Monitor.
+     *
+     * @param notificationMessage access notification message
+     * @return true if message is sent ok, false otherwise
+     */
+    public boolean sendAccessNotificationMessage(NotificationMessage notificationMessage) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String message = mapper.writeValueAsString(notificationMessage);
+            return sendAsyncMessage(this.cramExchangeName, this.cramAccessNotificationRoutingKey, message);
+        } catch (JsonProcessingException e) {
+            log.error("Error while processing JSON request", e);
+            return false;
+        }
+
+    }
+
+    /**
+     * Get current RabbitMQ channel.
+     * Used ONLY dor unit testing.
+     *
+     * @return current RabbitMQ channel
+     */
+    public Channel getChannel() {
+        return this.channel;
     }
 }

@@ -8,19 +8,29 @@ import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
 import eu.h2020.symbiote.core.model.resources.Resource;
+import eu.h2020.symbiote.security.commons.SecurityConstants;
+import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
+import eu.h2020.symbiote.security.communication.payloads.SecurityRequest;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Class defining all REST endpoints.
@@ -48,16 +58,16 @@ public class CloudCoreInterfaceController {
         this.rabbitManager = rabbitManager;
     }
 
-    private CoreResourceRegistryRequest prepareRdfRequest(String platformId, RDFResourceRegistryRequest resourceRegistryRequest, String token) {
+    private CoreResourceRegistryRequest prepareRdfRequest(String platformId, RDFResourceRegistryRequest resourceRegistryRequest, SecurityRequest securityRequest) {
         CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
-        coreRequest.setToken(token);
+        coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.RDF);
         coreRequest.setPlatformId(platformId);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest.getRdfInfo());
+            String resourcesJson = mapper.writeValueAsString(resourceRegistryRequest);
             coreRequest.setBody(resourcesJson);
 
             log.debug("Request for Core Services prepared");
@@ -70,20 +80,20 @@ public class CloudCoreInterfaceController {
         return coreRequest;
     }
 
-    private CoreResourceRegistryRequest prepareBasicRequest(String platformId, ResourceRegistryRequest resourceRegistryRequest, String token) {
+    private CoreResourceRegistryRequest prepareBasicRequest(String platformId, ResourceRegistryRequest resourceRegistryRequest, SecurityRequest securityRequest) {
         if (resourceRegistryRequest == null)
             return null;
 
         CoreResourceRegistryRequest coreRequest = new CoreResourceRegistryRequest();
-        coreRequest.setToken(token);
+        coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.BASIC);
         coreRequest.setPlatformId(platformId);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            String resourcesJson = mapper.writerFor(new TypeReference<List<Resource>>() {
-            }).writeValueAsString(resourceRegistryRequest.getResources());
+            String resourcesJson = mapper.writerFor(new TypeReference<Map<String, Resource>>() {
+            }).writeValueAsString(resourceRegistryRequest.getBody());
             coreRequest.setBody(resourcesJson);
 
             log.debug("Request for Core Services prepared");
@@ -103,7 +113,7 @@ public class CloudCoreInterfaceController {
         if (coreResourceRegistryRequest == null) {
             log.error("Error while handling resource request");
             response.setMessage("Error while parsing message body. No data has been processed by Core Services.");
-            response.setResources(null);
+            response.setBody(null);
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
@@ -125,53 +135,82 @@ public class CloudCoreInterfaceController {
         if (coreResponse == null) {
             log.debug("Timeout on handling request by Core Services");
             response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
-            response.setResources(null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            response.setBody(null);
+            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         log.debug("Response from Core Services received: " + coreResponse.getStatus() + ", " + coreResponse.getMessage() + ", " + coreResponse.getBody());
 
-        List<Resource> responseListOfResources = null;
+        Map<String, Resource> responseMapOfResources = null;
 
         if (coreResponse.getBody() != null) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                responseListOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<List<Resource>>() {
+                responseMapOfResources = mapper.readValue(coreResponse.getBody(), new TypeReference<Map<String, Resource>>() {
                 });
             } catch (IOException e) {
                 log.error("Error while parsing response body from Core Services", e);
                 response.setMessage("Error while parsing response body from Core Service. Operation might have been performed, but response was malformed.");
-                response.setResources(null);
-                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                response.setBody(null);
+                return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
         response.setMessage(coreResponse.getMessage());
-        response.setResources(responseListOfResources);
+        response.setBody(responseMapOfResources);
 
         log.debug("ResourceRegistryResponse created and returned to endpoint");
 
-        return new ResponseEntity<>(response, HttpStatus.valueOf(coreResponse.getStatus()));
+        return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.valueOf(coreResponse.getStatus()));
     }
 
+    private HttpHeaders getHeadersForCoreResponse(CoreResourceRegistryResponse response) {
+        HttpHeaders headers = new HttpHeaders();
+        if (response != null && response.getServiceResponse() != null) {
+            headers.put(SecurityConstants.SECURITY_RESPONSE_HEADER, Arrays.asList(response.getServiceResponse()));
+        }
+        return headers;
+    }
+
+    private ResponseEntity handleBadSecurityHeaders(InvalidArgumentsException e) {
+        log.error("No proper security headers passed", e);
+        ResourceRegistryResponse response = new ResourceRegistryResponse();
+        response.setStatus(401);
+        response.setMessage("Invalid security headers");
+        response.setBody(null);
+
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
+    }
 
     /**
      * Endpoint for creating resources using RDF description.
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be registered
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
+    @ApiOperation(value = "Register resources (RDF)",
+            notes = "Register resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity createRdfResources(@PathVariable("platformId") String platformId,
-                                             @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                             @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for creation of RDF resources");
-
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+    public ResponseEntity createRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                             @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -179,18 +218,31 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be modified
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return modified resources with appropriate HTTP status code
      */
+    @ApiOperation(value = "Modify resources (RDF)",
+            notes = "Modify registered resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity modifyRdfResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for modification of RDF resources");
+    public ResponseEntity modifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -198,18 +250,31 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be deleted
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return deleted resources with appropriate HTTP status code
      */
+    @ApiOperation(value = "Delete resources (RDF)",
+            notes = "Delete registered resources using extended RDF description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
-    public ResponseEntity deleteRdfResource(@PathVariable("platformId") String platformId,
-                                            @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for removal of RDF resources");
+    public ResponseEntity deleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of RDF resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+            CoreResourceRegistryRequest coreRequest = prepareRdfRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
 
     }
 
@@ -218,18 +283,31 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resources belong to
      * @param resourceRegistryRequest request containing resources to be registered
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
+    @ApiOperation(value = "Create resources (JSON)",
+            notes = "Create resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity createResources(@PathVariable("platformId") String platformId,
-                                          @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                          @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for creation of basic resources");
+    public ResponseEntity createResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                          @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -238,18 +316,31 @@ public class CloudCoreInterfaceController {
      * @param platformId              ID of a platform that resource belongs to; if platform ID is specified in Resource body object,
      *                                it will be overwritten by path parameter
      * @param resourceRegistryRequest request containing resources to be modified
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return modified resource or null along with appropriate error HTTP status code
      */
+    @ApiOperation(value = "Modify resources (JSON)",
+            notes = "Modify resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity modifyResource(@PathVariable("platformId") String platformId,
-                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for modification of basic resources");
+    public ResponseEntity modifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -257,18 +348,31 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform that resource belongs to
      * @param resourceRegistryRequest request containing resources to be removed
-     * @param token                   authorization token
+     * @param httpHeaders             request headers
      * @return empty body with appropriate operation HTTP status code
      */
+    @ApiOperation(value = "Delete resources (JSON)",
+            notes = "Delete resources using basic JSON description",
+            response = ResourceRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = URI_PREFIX + "/platforms/{platformId}/resources")
-    public ResponseEntity deleteResource(@PathVariable("platformId") String platformId,
-                                         @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @RequestHeader("X-Auth-Token") String token) {
-        log.debug("Request for removal of basic resources");
+    public ResponseEntity deleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of basic resources");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, token);
-        return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+            CoreResourceRegistryRequest coreRequest = prepareBasicRequest(platformId, resourceRegistryRequest, securityRequest);
+            return handleCoreResourceRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
     /**
@@ -276,14 +380,21 @@ public class CloudCoreInterfaceController {
      *
      * @param platformId              ID of a platform
      * @param cloudMonitoringPlatform status of platform to be sent to CRM
-     * @param token                   autohrization token
+     * @param httpHeaders             request headers
      * @return empty response with apropriate HTTP status code
      */
+    @ApiOperation(value = "Device status update",
+            notes = "Notify Core Resource Monitor of platform status",
+            response = String.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
-    public ResponseEntity monitoring(@PathVariable("platformId") String platformId,
-                                     @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
-                                     @RequestHeader("X-Auth-Token") String token) {
+    public ResponseEntity monitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
+                                     @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        //TODO apply new token policies
+
         log.debug("Cloud monitoring platform received");
 
         boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
@@ -293,6 +404,39 @@ public class CloudCoreInterfaceController {
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
+    }
+
+    /**
+     * Endpoint for passing access notifications.
+     *
+     * @param notificationMessage access notification message
+     * @param httpHeaders         request headers
+     */
+    @ApiOperation(value = "Access notifications handler",
+            notes = "Access notifications handler")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Notification received OK"),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.POST,
+            value = URI_PREFIX + "/accessNotifications")
+    public ResponseEntity accessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
+                                              @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Access notification");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            boolean result = this.rabbitManager.sendAccessNotificationMessage(notificationMessage);
+
+            if (result)
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            else
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (InvalidArgumentsException e) {
+            log.error("No proper security headers passed", e);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
     }
 
 

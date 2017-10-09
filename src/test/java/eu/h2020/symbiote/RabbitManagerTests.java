@@ -2,6 +2,7 @@ package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.communication.RabbitManager;
+import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.spy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RabbitManagerTests {
+
     @Test
     public void testSendResourceCreationRequest_timeout() {
         RabbitManager rabbitManager = spy(new RabbitManager());
@@ -123,6 +125,26 @@ public class RabbitManagerTests {
         doReturn(false).when(rabbitManager).sendAsyncMessage(any(), any(), any());
 
         boolean response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
+
+        assertEquals(false, response);
+    }
+
+    @Test
+    public void testSendAccessNotificationMessage_success() {
+        RabbitManager rabbitManager = spy(new RabbitManager());
+        doReturn(true).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+
+        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessage());
+
+        assertEquals(true, response);
+    }
+
+    @Test
+    public void testSendAccessNotificationMessage_fail() {
+        RabbitManager rabbitManager = spy(new RabbitManager());
+        doReturn(false).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+
+        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessage());
 
         assertEquals(false, response);
     }
