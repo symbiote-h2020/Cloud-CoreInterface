@@ -63,6 +63,7 @@ public class CloudCoreInterfaceController {
         coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.RDF);
         coreRequest.setPlatformId(platformId);
+        coreRequest.setFilteringPolicies(resourceRegistryRequest.getFilteringPolicies());
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -88,6 +89,7 @@ public class CloudCoreInterfaceController {
         coreRequest.setSecurityRequest(securityRequest);
         coreRequest.setDescriptionType(DescriptionType.BASIC);
         coreRequest.setPlatformId(platformId);
+        coreRequest.setFilteringPolicies(resourceRegistryRequest.getFilteringPolicies());
 
         try {
             ObjectMapper mapper = new ObjectMapper();
