@@ -12,7 +12,7 @@ import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
-import eu.h2020.symbiote.core.model.resources.Resource;
+import eu.h2020.symbiote.model.cim.Resource;
 import eu.h2020.symbiote.security.commons.SecurityConstants;
 import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
 import eu.h2020.symbiote.security.communication.payloads.SecurityRequest;

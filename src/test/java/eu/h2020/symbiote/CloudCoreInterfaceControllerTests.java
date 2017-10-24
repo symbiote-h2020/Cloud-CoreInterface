@@ -9,11 +9,11 @@ import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
-import eu.h2020.symbiote.core.model.RDFFormat;
-import eu.h2020.symbiote.core.model.RDFInfo;
-import eu.h2020.symbiote.core.model.SymbolicLocation;
-import eu.h2020.symbiote.core.model.resources.FeatureOfInterest;
-import eu.h2020.symbiote.core.model.resources.StationarySensor;
+import eu.h2020.symbiote.core.internal.RDFFormat;
+import eu.h2020.symbiote.core.internal.RDFInfo;
+import eu.h2020.symbiote.model.cim.FeatureOfInterest;
+import eu.h2020.symbiote.model.cim.StationarySensor;
+import eu.h2020.symbiote.model.cim.SymbolicLocation;
 import eu.h2020.symbiote.security.commons.SecurityConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -156,8 +156,8 @@ public class CloudCoreInterfaceControllerTests {
     @Test
     public void testCreateResource_success() {
         StationarySensor stationarySensor = new StationarySensor();
-        stationarySensor.setLabels(Arrays.asList(new String[]{"Stationary 1"}));
-        stationarySensor.setComments(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setName("Stationary 1");
+        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
@@ -180,23 +180,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
@@ -225,8 +223,8 @@ public class CloudCoreInterfaceControllerTests {
     @Test
     public void testMalformedResponseFromCore() {
         StationarySensor stationarySensor = new StationarySensor();
-        stationarySensor.setLabels(Arrays.asList(new String[]{"Stationary 1"}));
-        stationarySensor.setComments(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setName("Stationary 1");
+        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
@@ -262,8 +260,8 @@ public class CloudCoreInterfaceControllerTests {
     public void testModifyResource_success() {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setId("testId");
-        stationarySensor.setLabels(Arrays.asList(new String[]{"Stationary 1"}));
-        stationarySensor.setComments(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setName("Stationary 1");
+        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
@@ -288,23 +286,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
@@ -334,8 +330,8 @@ public class CloudCoreInterfaceControllerTests {
     public void testDeleteResource_success() {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setId("testId");
-        stationarySensor.setLabels(Arrays.asList(new String[]{"Stationary 1"}));
-        stationarySensor.setComments(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setName("Stationary 1");
+        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
@@ -358,23 +354,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
@@ -450,23 +444,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
@@ -542,23 +534,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
@@ -634,23 +624,21 @@ public class CloudCoreInterfaceControllerTests {
                 "{\"id1\":" +
                         "{" +
                         "\"@c\":\".StationarySensor\"," +
-                        "\"labels\":[\"Stationary 1\"]," +
+                        "\"name\":\"Stationary 1\"," +
                         "\"id\":\"testId\"," +
-                        "\"comments\":[\"This is stationary 1\"]," +
+                        "\"description\":[\"This is stationary 1\"]," +
                         "\"interworkingServiceURL\":\"http://example.com\"," +
                         "\"locatedAt\": {" +
                         "\"@c\": \".WGS84Location\"," +
                         "\"longitude\": 2.345," +
                         "\"latitude\": 15.1617," +
                         "\"altitude\": 100," +
-                        "\"name\": [\"Location\"]," +
+                        "\"name\": \"Location\"," +
                         "\"description\": [\"This is location\"]" +
                         "}," +
                         "\"featureOfInterest\": {" +
-                        "\"labels\": [" +
-                        "\"Room1\"" +
-                        "]," +
-                        "\"comments\": [" +
+                        "\"name\": \"Room1\"," +
+                        "\"description\": [" +
                         "\"This is room 1\"" +
                         "]," +
                         "\"hasProperty\": [" +
