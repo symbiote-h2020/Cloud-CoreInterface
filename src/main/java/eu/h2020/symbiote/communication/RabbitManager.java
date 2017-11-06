@@ -7,6 +7,7 @@ import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -361,7 +362,7 @@ public class RabbitManager {
      * @param notificationMessage access notification message
      * @return true if message is sent ok, false otherwise
      */
-    public boolean sendAccessNotificationMessage(NotificationMessage notificationMessage) {
+    public boolean sendAccessNotificationMessage(NotificationMessageSecured notificationMessage) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             String message = mapper.writeValueAsString(notificationMessage);

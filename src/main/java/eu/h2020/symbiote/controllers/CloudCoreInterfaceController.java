@@ -12,6 +12,7 @@ import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
 import eu.h2020.symbiote.model.cim.Resource;
 import eu.h2020.symbiote.security.commons.SecurityConstants;
 import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
@@ -20,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -424,12 +426,13 @@ public class CloudCoreInterfaceController {
     public ResponseEntity accessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
                                               @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
-            log.debug("Access notification");
+            log.debug("Access notification " + notificationMessage!=null? ReflectionToStringBuilder.toString(notificationMessage):"Notification is null");
             if (httpHeaders == null)
                 throw new InvalidArgumentsException();
             SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-            boolean result = this.rabbitManager.sendAccessNotificationMessage(notificationMessage);
+            NotificationMessageSecured notificationMessageSecured = new NotificationMessageSecured(securityRequest,notificationMessage);
+            boolean result = this.rabbitManager.sendAccessNotificationMessage(notificationMessageSecured);
 
             if (result)
                 return new ResponseEntity<>(null, HttpStatus.OK);
