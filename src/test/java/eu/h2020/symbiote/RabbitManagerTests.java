@@ -6,6 +6,7 @@ import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -134,7 +135,7 @@ public class RabbitManagerTests {
         RabbitManager rabbitManager = spy(new RabbitManager());
         doReturn(true).when(rabbitManager).sendAsyncMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessage());
+        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
 
         assertEquals(true, response);
     }
@@ -144,7 +145,7 @@ public class RabbitManagerTests {
         RabbitManager rabbitManager = spy(new RabbitManager());
         doReturn(false).when(rabbitManager).sendAsyncMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessage());
+        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
 
         assertEquals(false, response);
     }
