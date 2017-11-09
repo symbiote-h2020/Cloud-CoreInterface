@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
+import eu.h2020.symbiote.core.internal.ClearDataRequest;
+import eu.h2020.symbiote.core.internal.ClearDataResponse;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
@@ -60,6 +62,9 @@ public class RabbitManager {
 
     @Value("${rabbit.routingKey.resource.modificationRequested}")
     private String resourceModificationRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.resource.clearDataRequested}")
+    private String resourceClearDataRequestedRoutingKey;
 
     @Value("${rabbit.exchange.crm.name}")
     private String crmExchangeName;
@@ -309,6 +314,33 @@ public class RabbitManager {
     }
 
     /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param request resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public ClearDataResponse sendRpcClearDataMessage(String exchangeName, String routingKey, ClearDataRequest request) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(request);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
+            mapper = new ObjectMapper();
+            return mapper.readValue(responseMsg, ClearDataResponse.class);
+        } catch (IOException e) {
+            log.error("Failed (un)marshalling of rpc resource message for clearData", e);
+        }
+        return null;
+    }
+
+    /**
      * Method used to send RPC request to create resource.
      *
      * @param coreResourceRequest resource to be created
@@ -336,6 +368,16 @@ public class RabbitManager {
      */
     public CoreResourceRegistryResponse sendResourceModificationRequest(CoreResourceRegistryRequest coreResourceRequest) {
         return sendRpcResourceMessage(this.resourceExchangeName, this.resourceModificationRequestedRoutingKey, coreResourceRequest);
+    }
+
+    /**
+     * Method used to send RPC request to clear resource data for a platform
+     *
+     * @param clearDataRequest request containing platform id
+     * @return response containing status of requested operation
+     */
+    public ClearDataResponse sendClearDataRequest(ClearDataRequest clearDataRequest) {
+        return sendRpcClearDataMessage(this.resourceExchangeName, this.resourceClearDataRequestedRoutingKey, clearDataRequest);
     }
 
     /**
