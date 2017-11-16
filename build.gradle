@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.5.7.RELEASE'
+        springBootVersion = '1.5.8.RELEASE'
         asciiDocOutputDir = file("${buildDir}/asciidoc/generated")
         swaggerOutputDir = file("${buildDir}/swagger")
         snippetsOutputDir = file("${buildDir}/asciidoc/snippets")
