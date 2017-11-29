@@ -41,7 +41,7 @@ import java.util.Map;
  */
 @RestController
 public class CloudCoreInterfaceController {
-    private static final String URI_PREFIX = "/cloudCoreInterface/v1";
+    private static final String LEGACY_URI_PREFIX = "/cloudCoreInterface/v1";
 
     public static final Log log = LogFactory.getLog(CloudCoreInterfaceController.class);
 
@@ -185,6 +185,15 @@ public class CloudCoreInterfaceController {
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatus()));
     }
 
+    @Deprecated
+    @RequestMapping(method = RequestMethod.POST,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
+    public ResponseEntity legacyCreateRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                             @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return createRdfResources(platformId, resourceRegistryRequest, httpHeaders);
+    }
+
     /**
      * Endpoint for creating resources using RDF description.
      *
@@ -200,7 +209,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
+            value = "/platforms/{platformId}/rdfResources")
     public ResponseEntity createRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                              @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                              @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -214,6 +223,15 @@ public class CloudCoreInterfaceController {
         } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
+    }
+
+    @Deprecated
+    @RequestMapping(method = RequestMethod.PUT,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
+    public ResponseEntity legacyModifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return modifyRdfResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
     /**
@@ -231,7 +249,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
+            value = "/platforms/{platformId}/rdfResources")
     public ResponseEntity modifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                             @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -246,6 +264,15 @@ public class CloudCoreInterfaceController {
         } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
+    }
+
+    @Deprecated
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
+    public ResponseEntity legacyDeleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                            @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return deleteRdfResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
     /**
@@ -263,7 +290,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
-            value = URI_PREFIX + "/platforms/{platformId}/rdfResources")
+            value = "/platforms/{platformId}/rdfResources")
     public ResponseEntity deleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                             @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -281,6 +308,15 @@ public class CloudCoreInterfaceController {
 
     }
 
+    @Deprecated
+    @RequestMapping(method = RequestMethod.POST,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
+    public ResponseEntity legacyCreateResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                          @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return createResources(platformId, resourceRegistryRequest, httpHeaders);
+    }
+
     /**
      * Endpoint for creating resources using JSON description.
      *
@@ -296,7 +332,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
-            value = URI_PREFIX + "/platforms/{platformId}/resources")
+            value = "/platforms/{platformId}/resources")
     public ResponseEntity createResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                           @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                           @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -311,6 +347,14 @@ public class CloudCoreInterfaceController {
         } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
+    }
+
+    @RequestMapping(method = RequestMethod.PUT,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
+    public ResponseEntity legacyModifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return modifyResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
     /**
@@ -329,7 +373,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
-            value = URI_PREFIX + "/platforms/{platformId}/resources")
+            value = "/platforms/{platformId}/resources")
     public ResponseEntity modifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                          @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -344,6 +388,15 @@ public class CloudCoreInterfaceController {
         } catch (InvalidArgumentsException e) {
             return handleBadSecurityHeaders(e);
         }
+    }
+
+    @Deprecated
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
+    public ResponseEntity legacyDeleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
+                                         @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return deleteResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
     /**
@@ -361,7 +414,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns resources map in a form <internalId, Resource>", response = String.class, responseContainer = "Map"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
-            value = URI_PREFIX + "/platforms/{platformId}/resources")
+            value = "/platforms/{platformId}/resources")
     public ResponseEntity deleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
                                          @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -378,6 +431,14 @@ public class CloudCoreInterfaceController {
         }
     }
 
+    @Deprecated
+    @RequestMapping(method = RequestMethod.POST,
+            value = LEGACY_URI_PREFIX + "/platforms/{platformId}/clearData")
+    public ResponseEntity legacyClearData(@ApiParam(value = "ID of a platform for which resources should be cleared", required = true) @PathVariable("platformId") String platformId,
+                                    @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return clearData(platformId, httpHeaders);
+    }
+
     /**
      * Endpoint for clearing all resources for specified platform.
      *
@@ -392,7 +453,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Returns success message", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
-            value = URI_PREFIX + "/platforms/{platformId}/clearData")
+            value = "/platforms/{platformId}/clearData")
     public ResponseEntity clearData(@ApiParam(value = "ID of a platform for which resources should be cleared", required = true) @PathVariable("platformId") String platformId,
                                           @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
@@ -418,6 +479,15 @@ public class CloudCoreInterfaceController {
         }
     }
 
+    @Deprecated
+    @RequestMapping(method = RequestMethod.POST,
+            value = LEGACY_URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
+    public ResponseEntity legacyMonitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
+                                     @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return monitoring(platformId, cloudMonitoringPlatform, httpHeaders);
+    }
+
     /**
      * Endpoint for notifying Core Resource Monitor of platform status.
      *
@@ -432,7 +502,7 @@ public class CloudCoreInterfaceController {
     @ApiResponses(value = {
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
-            value = URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
+            value = "/crm/Monitoring/{platformId}/devices/status")
     public ResponseEntity monitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
                                      @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
@@ -449,6 +519,14 @@ public class CloudCoreInterfaceController {
 
     }
 
+    @Deprecated
+    @RequestMapping(method = RequestMethod.POST,
+            value = LEGACY_URI_PREFIX + "/accessNotifications")
+    public ResponseEntity legacyAccessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
+                                              @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        return accessNotifications(notificationMessage, httpHeaders);
+    }
+
     /**
      * Endpoint for passing access notifications.
      *
@@ -461,7 +539,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "Notification received OK"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
-            value = URI_PREFIX + "/accessNotifications")
+            value = "/accessNotifications")
     public ResponseEntity accessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
                                               @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
