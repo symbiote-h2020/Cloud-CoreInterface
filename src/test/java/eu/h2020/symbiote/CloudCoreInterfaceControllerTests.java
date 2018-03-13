@@ -2,6 +2,7 @@ package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringDevice;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.cloud.monitoring.model.Metric;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.controllers.CloudCoreInterfaceController;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
@@ -666,15 +667,17 @@ public class CloudCoreInterfaceControllerTests {
 
     @Test
     public void testMonitoring_fail() {
+        Metric metric = new Metric();
+        metric.setTag("metric1");
+        metric.setValue("value1");
+
         CloudMonitoringDevice cloudMonitoringDevice = new CloudMonitoringDevice();
         cloudMonitoringDevice.setId("deviceId");
-        cloudMonitoringDevice.setAvailability(1);
-        cloudMonitoringDevice.setLoad(5);
-        cloudMonitoringDevice.setTimestamp("timestamp");
+        cloudMonitoringDevice.setMetrics(Arrays.asList(metric));
 
         CloudMonitoringPlatform cloudMonitoringPlatform = new CloudMonitoringPlatform();
-        cloudMonitoringPlatform.setInternalId("platformId");
-        cloudMonitoringPlatform.setDevices(new CloudMonitoringDevice[]{cloudMonitoringDevice});
+        cloudMonitoringPlatform.setPlatformId("platformId");
+        cloudMonitoringPlatform.setMetrics(Arrays.asList(cloudMonitoringDevice));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -697,15 +700,17 @@ public class CloudCoreInterfaceControllerTests {
 
     @Test
     public void testMonitoring_success() {
+        Metric metric = new Metric();
+        metric.setTag("metric1");
+        metric.setValue("value1");
+
         CloudMonitoringDevice cloudMonitoringDevice = new CloudMonitoringDevice();
         cloudMonitoringDevice.setId("deviceId");
-        cloudMonitoringDevice.setAvailability(1);
-        cloudMonitoringDevice.setLoad(5);
-        cloudMonitoringDevice.setTimestamp("timestamp");
+        cloudMonitoringDevice.setMetrics(Arrays.asList(metric));
 
         CloudMonitoringPlatform cloudMonitoringPlatform = new CloudMonitoringPlatform();
-        cloudMonitoringPlatform.setInternalId("platformId");
-        cloudMonitoringPlatform.setDevices(new CloudMonitoringDevice[]{cloudMonitoringDevice});
+        cloudMonitoringPlatform.setPlatformId("platformId");
+        cloudMonitoringPlatform.setMetrics(Arrays.asList(cloudMonitoringDevice));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
