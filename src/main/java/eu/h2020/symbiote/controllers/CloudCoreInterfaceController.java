@@ -139,7 +139,8 @@ public class CloudCoreInterfaceController {
             log.debug("Timeout on handling request by Core Services");
             response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
             response.setBody(null);
-            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpStatus.GATEWAY_TIMEOUT.value());
+            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreResponse), HttpStatus.GATEWAY_TIMEOUT);
         }
 
         log.debug("Response from Core Services received: " + coreResponse.getStatus() + ", " + coreResponse.getMessage() + ", " + coreResponse.getBody());
@@ -467,7 +468,7 @@ public class CloudCoreInterfaceController {
 
             if( response == null ) {
                 log.debug("Timeout on handling request by Core Services");
-                response = new ClearDataResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.",null);
+                response = new ClearDataResponse(HttpStatus.GATEWAY_TIMEOUT.value(),"Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.",null);
                 response.setServiceResponse(null);
             } else {
                 log.debug("Clear data response: [" + response.getStatus() + "] " + response.getMessage());

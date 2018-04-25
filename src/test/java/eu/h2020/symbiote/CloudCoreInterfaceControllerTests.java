@@ -51,7 +51,7 @@ public class CloudCoreInterfaceControllerTests {
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
         ResponseEntity<?> response = controller.createResources(null, new ResourceRegistryRequest(), headers);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
     }
 
     @Test
