@@ -2,18 +2,17 @@ package eu.h2020.symbiote;
 
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.communication.RabbitManager;
-import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.DescriptionType;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
+import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -112,42 +111,49 @@ public class RabbitManagerTests {
 
     @Test
     public void testSendMonitoringMessage_success() {
+        MonitoringResponseSecured responseSecured = new MonitoringResponseSecured(200, "OK", new Object());
+        String serviceResponse = "testResponse";
+        responseSecured.setServiceResponse(serviceResponse);
         RabbitManager rabbitManager = spy(new RabbitManager());
-        doReturn(true).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+        doReturn(responseSecured).when(rabbitManager).sendRpcMonitoringMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
+        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
 
-        assertEquals(true, response);
+        assertEquals(serviceResponse, response.getServiceResponse());
+        assertEquals(200, response.getStatus());
     }
 
     @Test
     public void testSendMonitoringMessage_fail() {
         RabbitManager rabbitManager = spy(new RabbitManager());
-        doReturn(false).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+        doReturn(null).when(rabbitManager).sendRpcMonitoringMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
+        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
 
-        assertEquals(false, response);
+        assertNull(response);
     }
 
     @Test
     public void testSendAccessNotificationMessage_success() {
         RabbitManager rabbitManager = spy(new RabbitManager());
-        doReturn(true).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+        NotificationMessageResponseSecured responseSecured = new NotificationMessageResponseSecured();
+        String serviceResponse = "TestResponse";
+        responseSecured.setServiceResponse(serviceResponse);
+        doReturn(responseSecured).when(rabbitManager).sendRpcAccessNotificationMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
+        NotificationMessageResponseSecured response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
 
-        assertEquals(true, response);
+        assertEquals(serviceResponse, response.getServiceResponse());
     }
 
     @Test
     public void testSendAccessNotificationMessage_fail() {
         RabbitManager rabbitManager = spy(new RabbitManager());
-        doReturn(false).when(rabbitManager).sendAsyncMessage(any(), any(), any());
+        doReturn(null).when(rabbitManager).sendRpcAccessNotificationMessage(any(), any(), any());
 
-        boolean response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
+        NotificationMessageResponseSecured response = rabbitManager.sendAccessNotificationMessage(new NotificationMessageSecured());
 
-        assertEquals(false, response);
+        assertNull(response);
     }
 
 }

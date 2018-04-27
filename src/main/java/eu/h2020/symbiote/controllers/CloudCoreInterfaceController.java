@@ -11,7 +11,9 @@ import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
 import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.*;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
+import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
 import eu.h2020.symbiote.model.cim.Resource;
 import eu.h2020.symbiote.security.commons.SecurityConstants;
 import eu.h2020.symbiote.security.commons.exceptions.custom.InvalidArgumentsException;
@@ -511,10 +513,10 @@ public class CloudCoreInterfaceController {
 
         log.debug("Cloud monitoring platform received for platform " + platformId);
 
-        boolean result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
+        MonitoringResponseSecured result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
 
-        if (result)
-            return new ResponseEntity<>(null, HttpStatus.OK);
+        if (result != null)
+            return new ResponseEntity<>(getHeadersForCoreResponse(result), HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 
@@ -550,10 +552,10 @@ public class CloudCoreInterfaceController {
             SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
             NotificationMessageSecured notificationMessageSecured = new NotificationMessageSecured(securityRequest,notificationMessage);
-            boolean result = this.rabbitManager.sendAccessNotificationMessage(notificationMessageSecured);
+            NotificationMessageResponseSecured result = this.rabbitManager.sendAccessNotificationMessage(notificationMessageSecured);
 
-            if (result)
-                return new ResponseEntity<>(null, HttpStatus.OK);
+            if (result != null)
+                return new ResponseEntity<>(getHeadersForCoreResponse(result), HttpStatus.OK);
             else
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (InvalidArgumentsException e) {

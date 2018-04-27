@@ -1,15 +1,15 @@
 package eu.h2020.symbiote.communication;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
-import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.ClearDataRequest;
 import eu.h2020.symbiote.core.internal.ClearDataResponse;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
+import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -341,6 +341,61 @@ public class RabbitManager {
     }
 
     /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param request             resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public NotificationMessageResponseSecured sendRpcAccessNotificationMessage(String exchangeName, String routingKey, NotificationMessageSecured request) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(request);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
+            mapper = new ObjectMapper();
+            return mapper.readValue(responseMsg, NotificationMessageResponseSecured.class);
+        } catch (IOException e) {
+            log.error("Failed (un)marshalling of rpc resource message for clearData", e);
+        }
+        return null;
+    }
+
+    /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param request             resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public MonitoringResponseSecured sendRpcMonitoringMessage(String exchangeName, String routingKey,
+                                                                             CloudMonitoringPlatform request) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(request);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
+            mapper = new ObjectMapper();
+            return mapper.readValue(responseMsg, MonitoringResponseSecured.class);
+        } catch (IOException e) {
+            log.error("Failed (un)marshalling of rpc resource message for clearData", e);
+        }
+        return null;
+    }
+
+    /**
      * Method used to send RPC request to create resource.
      *
      * @param coreResourceRequest resource to be created
@@ -386,33 +441,19 @@ public class RabbitManager {
      * @param cloudMonitoringPlatform message from platform
      * @return true if message is sent ok, false otherwise
      */
-    public boolean sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String message = mapper.writeValueAsString(cloudMonitoringPlatform);
-            return sendAsyncMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, message);
-        } catch (JsonProcessingException e) {
-            log.error("Error while processing JSON request", e);
-            return false;
-        }
-
+    public MonitoringResponseSecured sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
+        return sendRpcMonitoringMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, cloudMonitoringPlatform);
     }
 
     /**
      * Method used to send asynchronous, access notification message to Core Resource Access Monitor.
      *
      * @param notificationMessage access notification message
-     * @return true if message is sent ok, false otherwise
+     * @return the response of CRAM
      */
-    public boolean sendAccessNotificationMessage(NotificationMessageSecured notificationMessage) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String message = mapper.writeValueAsString(notificationMessage);
-            return sendAsyncMessage(this.cramExchangeName, this.cramAccessNotificationRoutingKey, message);
-        } catch (JsonProcessingException e) {
-            log.error("Error while processing JSON request", e);
-            return false;
-        }
+    public NotificationMessageResponseSecured sendAccessNotificationMessage(NotificationMessageSecured notificationMessage) {
+        return sendRpcAccessNotificationMessage(this.cramExchangeName,
+                this.cramAccessNotificationRoutingKey, notificationMessage);
 
     }
 

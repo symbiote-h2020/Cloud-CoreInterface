@@ -12,6 +12,8 @@ import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
 import eu.h2020.symbiote.core.internal.RDFFormat;
 import eu.h2020.symbiote.core.internal.RDFInfo;
+import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
+import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
 import eu.h2020.symbiote.model.cim.FeatureOfInterest;
 import eu.h2020.symbiote.model.cim.StationarySensor;
 import eu.h2020.symbiote.model.cim.SymbolicLocation;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -158,11 +161,11 @@ public class CloudCoreInterfaceControllerTests {
     public void testCreateResource_success() {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setName("Stationary 1");
-        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setDescription(Collections.singletonList("This is stationary 1"));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
-        stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
+        stationarySensor.setObservesProperty(Arrays.asList("Temperature", "Humidity"));
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
@@ -225,11 +228,11 @@ public class CloudCoreInterfaceControllerTests {
     public void testMalformedResponseFromCore() {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setName("Stationary 1");
-        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setDescription(Collections.singletonList("This is stationary 1"));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
-        stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
+        stationarySensor.setObservesProperty(Arrays.asList("Temperature", "Humidity"));
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
@@ -262,11 +265,11 @@ public class CloudCoreInterfaceControllerTests {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setId("testId");
         stationarySensor.setName("Stationary 1");
-        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setDescription(Collections.singletonList("This is stationary 1"));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
-        stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
+        stationarySensor.setObservesProperty(Arrays.asList("Temperature", "Humidity"));
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
@@ -332,11 +335,11 @@ public class CloudCoreInterfaceControllerTests {
         StationarySensor stationarySensor = new StationarySensor();
         stationarySensor.setId("testId");
         stationarySensor.setName("Stationary 1");
-        stationarySensor.setDescription(Arrays.asList(new String[]{"This is stationary 1"}));
+        stationarySensor.setDescription(Collections.singletonList("This is stationary 1"));
         stationarySensor.setInterworkingServiceURL("http://example.com");
         stationarySensor.setLocatedAt(new SymbolicLocation());
         stationarySensor.setFeatureOfInterest(new FeatureOfInterest());
-        stationarySensor.setObservesProperty(Arrays.asList(new String[]{"Temperature", "Humidity"}));
+        stationarySensor.setObservesProperty(Arrays.asList("Temperature", "Humidity"));
 
         ResourceRegistryRequest request = new ResourceRegistryRequest();
 
@@ -673,11 +676,11 @@ public class CloudCoreInterfaceControllerTests {
 
         CloudMonitoringDevice cloudMonitoringDevice = new CloudMonitoringDevice();
         cloudMonitoringDevice.setId("deviceId");
-        cloudMonitoringDevice.setMetrics(Arrays.asList(metric));
+        cloudMonitoringDevice.setMetrics(Collections.singletonList(metric));
 
         CloudMonitoringPlatform cloudMonitoringPlatform = new CloudMonitoringPlatform();
         cloudMonitoringPlatform.setPlatformId("platformId");
-        cloudMonitoringPlatform.setMetrics(Arrays.asList(cloudMonitoringDevice));
+        cloudMonitoringPlatform.setMetrics(Collections.singletonList(cloudMonitoringDevice));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -689,7 +692,7 @@ public class CloudCoreInterfaceControllerTests {
                 "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendMonitoringMessage(any())).thenReturn(false);
+        when(rabbitManager.sendMonitoringMessage(any())).thenReturn(null);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
         ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, headers);
@@ -706,11 +709,11 @@ public class CloudCoreInterfaceControllerTests {
 
         CloudMonitoringDevice cloudMonitoringDevice = new CloudMonitoringDevice();
         cloudMonitoringDevice.setId("deviceId");
-        cloudMonitoringDevice.setMetrics(Arrays.asList(metric));
+        cloudMonitoringDevice.setMetrics(Collections.singletonList(metric));
 
         CloudMonitoringPlatform cloudMonitoringPlatform = new CloudMonitoringPlatform();
         cloudMonitoringPlatform.setPlatformId("platformId");
-        cloudMonitoringPlatform.setMetrics(Arrays.asList(cloudMonitoringDevice));
+        cloudMonitoringPlatform.setMetrics(Collections.singletonList(cloudMonitoringDevice));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
@@ -722,12 +725,16 @@ public class CloudCoreInterfaceControllerTests {
                 "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendMonitoringMessage(any())).thenReturn(true);
+        MonitoringResponseSecured responseSecured = new MonitoringResponseSecured(200, "OK", new Object());
+        String serviceResponse = "TestResponse";
+        responseSecured.setServiceResponse(serviceResponse);
+        when(rabbitManager.sendMonitoringMessage(any())).thenReturn(responseSecured);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
         ResponseEntity response = controller.monitoring("platformId", cloudMonitoringPlatform, headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(serviceResponse, response.getHeaders().get(SecurityConstants.SECURITY_RESPONSE_HEADER).get(0));
         assertNull(response.getBody());
     }
 
@@ -743,7 +750,7 @@ public class CloudCoreInterfaceControllerTests {
                 "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(false);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(null);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
         ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
@@ -764,24 +771,29 @@ public class CloudCoreInterfaceControllerTests {
                 "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
 
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(true);
+        NotificationMessageResponseSecured responseSecured = new NotificationMessageResponseSecured();
+        String serviceResponse = "testResponse";
+        responseSecured.setServiceResponse(serviceResponse);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(responseSecured);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
         ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(serviceResponse, response.getHeaders().get(SecurityConstants.SECURITY_RESPONSE_HEADER).get(0));
         assertNull(response.getBody());
     }
 
     @Test
     public void testAccessNotification_noHeaders() {
-        HttpHeaders headers = null;
-
         RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
-        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(true);
+        NotificationMessageResponseSecured responseSecured = new NotificationMessageResponseSecured();
+        String serviceResponse = "testResponse";
+        responseSecured.setServiceResponse(serviceResponse);
+        when(rabbitManager.sendAccessNotificationMessage(any())).thenReturn(responseSecured);
 
         CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
-        ResponseEntity response = controller.accessNotifications(new NotificationMessage(), headers);
+        ResponseEntity response = controller.accessNotifications(new NotificationMessage(), null);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNull(response.getBody());
