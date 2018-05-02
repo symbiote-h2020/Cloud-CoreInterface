@@ -376,7 +376,7 @@ public class RabbitManager {
      * @return response from the consumer or null if timeout occurs
      */
     public MonitoringResponseSecured sendRpcMonitoringMessage(String exchangeName, String routingKey,
-                                                                             CloudMonitoringPlatform request) {
+                                                              CloudMonitoringPlatform request) {
         try {
             String message;
             ObjectMapper mapper = new ObjectMapper();
@@ -442,6 +442,7 @@ public class RabbitManager {
      * @return true if message is sent ok, false otherwise
      */
     public MonitoringResponseSecured sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
+        log.debug("SendMonitoringMessage, exchange = " + this.crmExchangeName + ", routingKey = " + this.crmMonitoringRoutingKey);
         return sendRpcMonitoringMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, cloudMonitoringPlatform);
     }
 
@@ -452,6 +453,8 @@ public class RabbitManager {
      * @return the response of CRAM
      */
     public NotificationMessageResponseSecured sendAccessNotificationMessage(NotificationMessageSecured notificationMessage) {
+        log.debug("sendAccessNotificationMessage, exchange = " + this.cramExchangeName + ", routingKey = " + this.cramAccessNotificationRoutingKey);
+
         return sendRpcAccessNotificationMessage(this.cramExchangeName,
                 this.cramAccessNotificationRoutingKey, notificationMessage);
 
