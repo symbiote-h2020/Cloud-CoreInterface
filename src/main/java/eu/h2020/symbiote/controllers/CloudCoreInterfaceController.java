@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatformRequest;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.core.cci.AbstractResponseSecured;
 import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
@@ -510,15 +511,23 @@ public class CloudCoreInterfaceController {
                                      @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         //TODO apply new token policies
+        try {
+            log.debug("Cloud monitoring platform received for platform " + platformId);
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-        log.debug("Cloud monitoring platform received for platform " + platformId);
+            CloudMonitoringPlatformRequest cloudMonitoringPlatformRequest = new CloudMonitoringPlatformRequest(securityRequest, cloudMonitoringPlatform);
+            MonitoringResponseSecured result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatformRequest);
 
-        MonitoringResponseSecured result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatform);
-
-        if (result != null)
-            return new ResponseEntity<>(getHeadersForCoreResponse(result), HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            if (result != null)
+                return new ResponseEntity<>(getHeadersForCoreResponse(result), HttpStatus.OK);
+            else
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (InvalidArgumentsException e) {
+            log.error("No proper security headers passed", e);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
 
     }
 

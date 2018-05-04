@@ -1,6 +1,6 @@
 package eu.h2020.symbiote;
 
-import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatformRequest;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
@@ -117,7 +117,7 @@ public class RabbitManagerTests {
         RabbitManager rabbitManager = spy(new RabbitManager());
         doReturn(responseSecured).when(rabbitManager).sendRpcMonitoringMessage(any(), any(), any());
 
-        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
+        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatformRequest());
 
         assertEquals(serviceResponse, response.getServiceResponse());
         assertEquals(200, response.getStatus());
@@ -128,7 +128,7 @@ public class RabbitManagerTests {
         RabbitManager rabbitManager = spy(new RabbitManager());
         doReturn(null).when(rabbitManager).sendRpcMonitoringMessage(any(), any(), any());
 
-        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatform());
+        MonitoringResponseSecured response = rabbitManager.sendMonitoringMessage(new CloudMonitoringPlatformRequest());
 
         assertNull(response);
     }

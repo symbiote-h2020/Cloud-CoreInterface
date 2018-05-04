@@ -2,7 +2,7 @@ package eu.h2020.symbiote.communication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
-import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
+import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatformRequest;
 import eu.h2020.symbiote.core.internal.ClearDataRequest;
 import eu.h2020.symbiote.core.internal.ClearDataResponse;
 import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
@@ -376,7 +376,7 @@ public class RabbitManager {
      * @return response from the consumer or null if timeout occurs
      */
     public MonitoringResponseSecured sendRpcMonitoringMessage(String exchangeName, String routingKey,
-                                                              CloudMonitoringPlatform request) {
+                                                              CloudMonitoringPlatformRequest request) {
         try {
             String message;
             ObjectMapper mapper = new ObjectMapper();
@@ -438,12 +438,12 @@ public class RabbitManager {
     /**
      * Method used to send asynchronous, monitoring message to Core Resource Monitor.
      *
-     * @param cloudMonitoringPlatform message from platform
+     * @param cloudMonitoringPlatformRequest message from platform
      * @return true if message is sent ok, false otherwise
      */
-    public MonitoringResponseSecured sendMonitoringMessage(CloudMonitoringPlatform cloudMonitoringPlatform) {
+    public MonitoringResponseSecured sendMonitoringMessage(CloudMonitoringPlatformRequest cloudMonitoringPlatformRequest) {
         log.debug("SendMonitoringMessage, exchange = " + this.crmExchangeName + ", routingKey = " + this.crmMonitoringRoutingKey);
-        return sendRpcMonitoringMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, cloudMonitoringPlatform);
+        return sendRpcMonitoringMessage(this.crmExchangeName, this.crmMonitoringRoutingKey, cloudMonitoringPlatformRequest);
     }
 
     /**
