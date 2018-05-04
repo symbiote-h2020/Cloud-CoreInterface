@@ -510,14 +510,14 @@ public class CloudCoreInterfaceController {
     public ResponseEntity monitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
                                      @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
-        //TODO apply new token policies
         try {
             log.debug("Cloud monitoring platform received for platform " + platformId);
             if (httpHeaders == null)
                 throw new InvalidArgumentsException();
             SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-            CloudMonitoringPlatformRequest cloudMonitoringPlatformRequest = new CloudMonitoringPlatformRequest(securityRequest, cloudMonitoringPlatform);
+            CloudMonitoringPlatformRequest cloudMonitoringPlatformRequest =
+                    new CloudMonitoringPlatformRequest(securityRequest, cloudMonitoringPlatform);
             MonitoringResponseSecured result = this.rabbitManager.sendMonitoringMessage(cloudMonitoringPlatformRequest);
 
             if (result != null)

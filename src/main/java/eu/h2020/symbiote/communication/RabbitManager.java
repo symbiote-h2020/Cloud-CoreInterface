@@ -362,7 +362,7 @@ public class RabbitManager {
             mapper = new ObjectMapper();
             return mapper.readValue(responseMsg, NotificationMessageResponseSecured.class);
         } catch (IOException e) {
-            log.error("Failed (un)marshalling of rpc resource message for clearData", e);
+            log.error("Failed (un)marshalling of rpc resource message for sendRpcAccessNotificationMessage", e);
         }
         return null;
     }
@@ -382,7 +382,9 @@ public class RabbitManager {
             ObjectMapper mapper = new ObjectMapper();
             message = mapper.writeValueAsString(request);
 
+            log.debug("sendRpcMonitoringMessage: Sending " + message);
             String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+            log.debug("sendRpcMonitoringMessage: Received " + responseMsg);
 
             if (responseMsg == null)
                 return null;
@@ -390,7 +392,7 @@ public class RabbitManager {
             mapper = new ObjectMapper();
             return mapper.readValue(responseMsg, MonitoringResponseSecured.class);
         } catch (IOException e) {
-            log.error("Failed (un)marshalling of rpc resource message for clearData", e);
+            log.error("Failed (un)marshalling of rpc resource message for sendRpcMonitoringMessage", e);
         }
         return null;
     }
