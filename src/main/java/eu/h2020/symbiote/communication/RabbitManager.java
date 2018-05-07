@@ -240,7 +240,7 @@ public class RabbitManager {
                 }
 
                 if (delivery.getProperties().getCorrelationId().equals(correlationId)) {
-                    log.debug("Got reply with correlationId: " + correlationId);
+                    log.debug("Got reply with correlationId: " + correlationId + " and delivery: " + delivery);
                     responseMsg = new String(delivery.getBody());
                     break;
                 } else {
