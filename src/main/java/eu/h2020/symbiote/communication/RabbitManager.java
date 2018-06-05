@@ -3,10 +3,7 @@ package eu.h2020.symbiote.communication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatformRequest;
-import eu.h2020.symbiote.core.internal.ClearDataRequest;
-import eu.h2020.symbiote.core.internal.ClearDataResponse;
-import eu.h2020.symbiote.core.internal.CoreResourceRegistryRequest;
-import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
+import eu.h2020.symbiote.core.internal.*;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageSecured;
 import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
@@ -102,6 +99,39 @@ public class RabbitManager {
     @Value("${rabbit.routingKey.cram.accessNotifications}")
     private String cramAccessNotificationRoutingKey;
 
+    @Value("${rabbit.exchange.ssp.name}")
+    private String sspExchangeName;
+
+    @Value("${rabbit.exchange.ssp.type}")
+    private String sspExchangeType;
+
+    @Value("${rabbit.exchange.ssp.durable}")
+    private boolean sspExchangeDurable;
+
+    @Value("${rabbit.exchange.ssp.autodelete}")
+    private boolean sspExchangeAutodelete;
+
+    @Value("${rabbit.exchange.ssp.internal}")
+    private boolean sspExchangeInternal;
+
+    @Value("${rabbit.routingKey.ssp.sdev.creationRequested}")
+    private String sdevCreationRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.ssp.sdev.removalRequested}")
+    private String sdevRemovalRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.ssp.sdev.modificationRequested}")
+    private String sdevModificationRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.ssp.sdev.resource.creationRequested}")
+    private String sspResourceCreationRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.ssp.sdev.resource.removalRequested}")
+    private String sspResourceRemovalRequestedRoutingKey;
+
+    @Value("${rabbit.routingKey.ssp.sdev.resource.modificationRequested}")
+    private String sspResourceModificationRequestedRoutingKey;
+
     private Connection connection;
     private Channel channel;
 
@@ -140,6 +170,12 @@ public class RabbitManager {
         this.cramExchangeDurable = exchangeDurable;
         this.cramExchangeAutodelete = exchangeAutodelete;
         this.cramExchangeInternal = exchangeInternal;
+
+        this.sspExchangeName = exchangeName;
+        this.sspExchangeType = exchangeType;
+        this.sspExchangeDurable = exchangeDurable;
+        this.sspExchangeAutodelete = exchangeAutodelete;
+        this.sspExchangeInternal = exchangeInternal;
     }
 
     /**
@@ -177,6 +213,13 @@ public class RabbitManager {
                     this.cramExchangeDurable,
                     this.cramExchangeAutodelete,
                     this.cramExchangeInternal,
+                    null);
+
+            this.channel.exchangeDeclare(this.sspExchangeName,
+                    this.sspExchangeType,
+                    this.sspExchangeDurable,
+                    this.sspExchangeAutodelete,
+                    this.sspExchangeInternal,
                     null);
 
         } catch (IOException | TimeoutException e) {
@@ -309,6 +352,60 @@ public class RabbitManager {
             return mapper.readValue(responseMsg, CoreResourceRegistryResponse.class);
         } catch (IOException e) {
             log.error("Failed (un)marshalling of rpc resource message", e);
+        }
+        return null;
+    }
+
+    /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param coreSdevRequest resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public CoreSdevRegistryResponse sendRpcSdevMessage(String exchangeName, String routingKey, CoreSdevRegistryRequest coreSdevRequest) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(coreSdevRequest);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
+            mapper = new ObjectMapper();
+            return mapper.readValue(responseMsg, CoreSdevRegistryResponse.class);
+        } catch (IOException e) {
+            log.error("Failed (un)marshalling of rpc sdev message", e);
+        }
+        return null;
+    }
+
+    /**
+     * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
+     *
+     * @param exchangeName        name of the exchange to send message to
+     * @param routingKey          routing key to send message to
+     * @param coreSspResourceRequest resource to be sent
+     * @return response from the consumer or null if timeout occurs
+     */
+    public CoreSspResourceRegistryResponse sendRpcSspResourceMessage(String exchangeName, String routingKey, CoreSspResourceRegistryRequest coreSspResourceRequest) {
+        try {
+            String message;
+            ObjectMapper mapper = new ObjectMapper();
+            message = mapper.writeValueAsString(coreSspResourceRequest);
+
+            String responseMsg = this.sendRpcMessage(exchangeName, routingKey, message);
+
+            if (responseMsg == null)
+                return null;
+
+            mapper = new ObjectMapper();
+            return mapper.readValue(responseMsg, CoreSspResourceRegistryResponse.class);
+        } catch (IOException e) {
+            log.error("Failed (un)marshalling of rpc sdev message", e);
         }
         return null;
     }
@@ -460,6 +557,66 @@ public class RabbitManager {
         return sendRpcAccessNotificationMessage(this.cramExchangeName,
                 this.cramAccessNotificationRoutingKey, notificationMessage);
 
+    }
+
+    /**
+     * Method used to send RPC request to create a smart device.
+     *
+     * @param coreSdevRequest smart device to be created
+     * @return object containing status of requested operation and, if successful, a smart device object containing assigned ID
+     */
+    public CoreSdevRegistryResponse sendSdevCreationRequest(CoreSdevRegistryRequest coreSdevRequest) {
+        return sendRpcSdevMessage(this.sspExchangeName, this.sdevCreationRequestedRoutingKey, coreSdevRequest);
+    }
+
+    /**
+     * Method used to send RPC request to remove a smart device.
+     *
+     * @param coreSdevRequest smart device to be removed
+     * @return object containing status of requested operation and, if successful, a smart device object
+     */
+    public CoreSdevRegistryResponse sendSdevRemovalRequest(CoreSdevRegistryRequest coreSdevRequest) {
+        return sendRpcSdevMessage(this.sspExchangeName, this.sdevRemovalRequestedRoutingKey, coreSdevRequest);
+    }
+
+    /**
+     * Method used to send RPC request to modify a smart device.
+     *
+     * @param coreSdevRequest smart device to be modified
+     * @return object containing status of requested operation and, if successful, a smart device object
+     */
+    public CoreSdevRegistryResponse sendSdevModificationRequest(CoreSdevRegistryRequest coreSdevRequest) {
+        return sendRpcSdevMessage(this.sspExchangeName, this.sdevModificationRequestedRoutingKey, coreSdevRequest);
+    }
+
+    /**
+     * Method used to send RPC request to create an SSP resource.
+     *
+     * @param coreSspResourceRequest SSP resource to be created
+     * @return object containing status of requested operation and, if successful, an SSP Resource object containing assigned ID
+     */
+    public CoreSspResourceRegistryResponse sendSspResourceCreationRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
+        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
+    }
+
+    /**
+     * Method used to send RPC request to modify an SSP resource.
+     *
+     * @param coreSspResourceRequest SSP resource to be modified
+     * @return object containing status of requested operation and, if successful, an SSP Resource object
+     */
+    public CoreSspResourceRegistryResponse sendSspResourceModificationRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
+        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceModificationRequestedRoutingKey, coreSspResourceRequest);
+    }
+
+    /**
+     * Method used to send RPC request to delete an SSP resource.
+     *
+     * @param coreSspResourceRequest SSP resource to be deleted
+     * @return object containing status of requested operation and, if successful, an SSP Resource object
+     */
+    public CoreSspResourceRegistryResponse sendSspResourceRemovalRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
+        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
     }
 
     /**
