@@ -27,13 +27,18 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,12 +50,18 @@ import java.util.Map;
 @RestController
 public class CloudCoreInterfaceController {
     private static final String LEGACY_URI_PREFIX = "/cloudCoreInterface/v1";
+    private static final String ERROR_PROXY_STATUS_MSG = "Error status code in proxy communication: ";
+    private static final String ERROR_GATEWAY_TIMEOUT = "Timeout occured when contacting symbIoTe Core services";
 
     public static final Log log = LogFactory.getLog(CloudCoreInterfaceController.class);
 
     private enum CoreOperationType {CREATE, MODIFY, DELETE}
 
     private final RabbitManager rabbitManager;
+    private RestTemplate restTemplate;
+
+    @Value("${symbiote.admUrl}")
+    private String admUrl;
 
     /**
      * Class constructor which autowires RabbitManager bean.
@@ -60,6 +71,7 @@ public class CloudCoreInterfaceController {
     @Autowired
     public CloudCoreInterfaceController(RabbitManager rabbitManager) {
         this.rabbitManager = rabbitManager;
+        this.restTemplate = new RestTemplate();
     }
 
     private CoreResourceRegistryRequest prepareRdfRequest(String platformId, RDFResourceRegistryRequest resourceRegistryRequest, SecurityRequest securityRequest) {
@@ -193,8 +205,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity legacyCreateRdfResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                             @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                                   @ApiParam(value = "Request body, containing RDF description of resources to register", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                                   @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return createRdfResources(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -233,8 +245,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.PUT,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity legacyModifyRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                            @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                                  @ApiParam(value = "Request body, containing RDF description of resources to modify", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                                  @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return modifyRdfResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -274,8 +286,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.DELETE,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/rdfResources")
     public ResponseEntity legacyDeleteRdfResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                            @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
-                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                                  @ApiParam(value = "Request body, containing RDF description of resources to delete", required = true) @RequestBody RDFResourceRegistryRequest resourceRegistryRequest,
+                                                  @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return deleteRdfResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -316,8 +328,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity legacyCreateResources(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                          @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                                @ApiParam(value = "Request body, containing JSON description of resources to create", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                                @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return createResources(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -356,8 +368,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.PUT,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity legacyModifyResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                         @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                               @ApiParam(value = "Request body, containing JSON description of resources to modify", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                               @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return modifyResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -398,8 +410,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.DELETE,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/resources")
     public ResponseEntity legacyDeleteResource(@ApiParam(value = "ID of a platform that resources belong to", required = true) @PathVariable("platformId") String platformId,
-                                         @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
-                                         @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                               @ApiParam(value = "Request body, containing JSON description of resources to delete", required = true) @RequestBody ResourceRegistryRequest resourceRegistryRequest,
+                                               @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return deleteResource(platformId, resourceRegistryRequest, httpHeaders);
     }
 
@@ -439,15 +451,15 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = LEGACY_URI_PREFIX + "/platforms/{platformId}/clearData")
     public ResponseEntity legacyClearData(@ApiParam(value = "ID of a platform for which resources should be cleared", required = true) @PathVariable("platformId") String platformId,
-                                    @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return clearData(platformId, httpHeaders);
     }
 
     /**
      * Endpoint for clearing all resources for specified platform.
      *
-     * @param platformId              ID of a platform that resources belong to
-     * @param httpHeaders             request headers
+     * @param platformId  ID of a platform that resources belong to
+     * @param httpHeaders request headers
      * @return created resources (with resourceId filled) with appropriate HTTP status code
      */
     @ApiOperation(value = "Clear data",
@@ -459,19 +471,19 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = "/platforms/{platformId}/clearData")
     public ResponseEntity clearData(@ApiParam(value = "ID of a platform for which resources should be cleared", required = true) @PathVariable("platformId") String platformId,
-                                          @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                    @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for clear data for platform " + platformId);
             if (httpHeaders == null)
                 throw new InvalidArgumentsException();
             SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-            ClearDataRequest request = new ClearDataRequest(securityRequest,platformId);
+            ClearDataRequest request = new ClearDataRequest(securityRequest, platformId);
             ClearDataResponse response = rabbitManager.sendClearDataRequest(request);
 
-            if( response == null ) {
+            if (response == null) {
                 log.debug("Timeout on handling request by Core Services");
-                response = new ClearDataResponse(HttpStatus.GATEWAY_TIMEOUT.value(),"Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.",null);
+                response = new ClearDataResponse(HttpStatus.GATEWAY_TIMEOUT.value(), "Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.", null);
                 response.setServiceResponse(null);
             } else {
                 log.debug("Clear data response: [" + response.getStatus() + "] " + response.getMessage());
@@ -487,8 +499,8 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = LEGACY_URI_PREFIX + "/crm/Monitoring/{platformId}/devices/status")
     public ResponseEntity legacyMonitoring(@ApiParam(value = "ID of a platform that the device belongs to", required = true) @PathVariable("platformId") String platformId,
-                                     @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
-                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                           @ApiParam(value = "Current status information that CRM should be notified of", required = true) @RequestBody CloudMonitoringPlatform cloudMonitoringPlatform,
+                                           @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return monitoring(platformId, cloudMonitoringPlatform, httpHeaders);
     }
 
@@ -535,7 +547,7 @@ public class CloudCoreInterfaceController {
     @RequestMapping(method = RequestMethod.POST,
             value = LEGACY_URI_PREFIX + "/accessNotifications")
     public ResponseEntity legacyAccessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
-                                              @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+                                                    @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         return accessNotifications(notificationMessage, httpHeaders);
     }
 
@@ -555,12 +567,12 @@ public class CloudCoreInterfaceController {
     public ResponseEntity accessNotifications(@ApiParam(value = "Request body, containing notification message", required = true) @RequestBody NotificationMessage notificationMessage,
                                               @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
-            log.debug("Access notification " + notificationMessage!=null? ReflectionToStringBuilder.toString(notificationMessage):"Notification is null");
+            log.debug("Access notification " + notificationMessage != null ? ReflectionToStringBuilder.toString(notificationMessage) : "Notification is null");
             if (httpHeaders == null)
                 throw new InvalidArgumentsException();
             SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
 
-            NotificationMessageSecured notificationMessageSecured = new NotificationMessageSecured(securityRequest,notificationMessage);
+            NotificationMessageSecured notificationMessageSecured = new NotificationMessageSecured(securityRequest, notificationMessage);
             NotificationMessageResponseSecured result = this.rabbitManager.sendAccessNotificationMessage(notificationMessageSecured);
 
             if (result != null)
@@ -571,6 +583,120 @@ public class CloudCoreInterfaceController {
             log.error("No proper security headers passed", e);
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    /**
+     * TODO
+     */
+    @ApiOperation(value = "TODO",
+            notes = "TODO",
+            response = String.class
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.GET,
+            value = SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform")
+    public ResponseEntity getMisdeedsGroupedByPlatform(@ApiParam(value = "Headers", required = true) @RequestHeader HttpHeaders httpHeaders,
+                                                       @ApiParam(value = "Platform ID") @RequestParam(name = "platformId", required = false) String platformIdFilter,
+                                                       @ApiParam(value = "Search origin platform ID") @RequestParam(name = "searchOriginPlatformId", required = false) String singleSearchOriginPlatformFilter) {
+        log.debug("Get misdeeds group by platform");
+        try {
+            HttpEntity<String> entity = new HttpEntity<>(null, httpHeaders);
+
+            Map<String,String> params = new HashMap<>();
+            if (platformIdFilter != null)
+                params.put("platformId",platformIdFilter);
+            if (singleSearchOriginPlatformFilter != null)
+                params.put("searchOriginPlatformId",singleSearchOriginPlatformFilter);
+
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform", HttpMethod.GET, entity, String.class, params);
+
+            HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
+
+            return new ResponseEntity<>(stringResponseEntity.getBody(), headers, stringResponseEntity.getStatusCode());
+        } catch (HttpStatusCodeException e) {
+            log.info(ERROR_PROXY_STATUS_MSG + e.getStatusCode());
+            log.debug(e);
+            return new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+        }
+    }
+
+    /**
+     * TODO
+     */
+    @ApiOperation(value = "TODO",
+            notes = "TODO",
+            response = String.class
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.GET,
+            value = SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation")
+    public ResponseEntity getMisdeedsGroupedByFederation(@ApiParam(value = "Headers", required = true) @RequestHeader HttpHeaders httpHeaders,
+                                                       @ApiParam(value = "Platform ID") @RequestParam(name = "platformId", required = false) String platformIdFilter,
+                                                       @ApiParam(value = "Federation ID") @RequestParam(name = "federationId", required = false) String federationIdFilter) {
+        log.debug("Get misdeeds group by federation");
+        try {
+            HttpEntity<String> entity = new HttpEntity<>(null, httpHeaders);
+            Map<String,String> params = new HashMap<>();
+            if (platformIdFilter != null)
+                params.put("platformId",platformIdFilter);
+            if (federationIdFilter != null)
+                params.put("federationId",federationIdFilter);
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation", HttpMethod.GET, entity, String.class, params);
+
+            HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
+
+            return new ResponseEntity<>(stringResponseEntity.getBody(), headers, stringResponseEntity.getStatusCode());
+        } catch (HttpStatusCodeException e) {
+            log.info(ERROR_PROXY_STATUS_MSG + e.getStatusCode());
+            log.debug(e);
+            return new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+        }
+    }
+
+    /**
+     * Method used to strip 'Transfer-encoding' header and use 'Content-length' instead.
+     *
+     * @param headers headers to strip 'Transfer-encoding' from
+     * @return headers without 'Transfer-encoding' field
+     */
+    private HttpHeaders stripTransferEncoding(HttpHeaders headers) {
+        if (headers == null)
+            return null;
+
+        HttpHeaders newHeaders = new HttpHeaders();
+
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            if (!entry.getKey().equals(HttpHeaders.TRANSFER_ENCODING)) {
+                for (String value : entry.getValue())
+                    newHeaders.add(entry.getKey(), value);
+            }
+
+        }
+
+        return newHeaders;
+    }
+
+    /**
+     * Used to override RestTemplate used in request proxying with a mocked version for unit testing.
+     *
+     * @param restTemplate
+     */
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    private String decodeUrlParameters(String s) {
+        String result = "";
+        try {
+            result = URLDecoder.decode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error in decoding: " + e.getMessage(), e);
+        }
+        return result;
     }
 
 
