@@ -610,7 +610,7 @@ public class CloudCoreInterfaceController {
             if (singleSearchOriginPlatformFilter != null)
                 params.put("searchOriginPlatformId",singleSearchOriginPlatformFilter);
 
-            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_PREFIX + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform", HttpMethod.GET, entity, String.class, params);
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform", HttpMethod.GET, entity, String.class, params);
 
             HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
 
@@ -645,7 +645,7 @@ public class CloudCoreInterfaceController {
                 params.put("platformId",platformIdFilter);
             if (federationIdFilter != null)
                 params.put("federationId",federationIdFilter);
-            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_PREFIX + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation", HttpMethod.GET, entity, String.class, params);
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation", HttpMethod.GET, entity, String.class, params);
 
             HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
 
