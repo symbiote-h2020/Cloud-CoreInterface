@@ -596,7 +596,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.GET,
-            value = SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform")
+            value = SecurityConstants.ADM_PREFIX + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform")
     public ResponseEntity getMisdeedsGroupedByPlatform(@ApiParam(value = "Headers", required = true) @RequestHeader HttpHeaders httpHeaders,
                                                        @ApiParam(value = "Platform ID") @RequestParam(name = "platformId", required = false) String platformIdFilter,
                                                        @ApiParam(value = "Search origin platform ID") @RequestParam(name = "searchOriginPlatformId", required = false) String singleSearchOriginPlatformFilter) {
@@ -610,7 +610,7 @@ public class CloudCoreInterfaceController {
             if (singleSearchOriginPlatformFilter != null)
                 params.put("searchOriginPlatformId",singleSearchOriginPlatformFilter);
 
-            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform", HttpMethod.GET, entity, String.class, params);
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_PREFIX + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/bySearchOriginPlatform", HttpMethod.GET, entity, String.class, params);
 
             HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
 
@@ -633,7 +633,7 @@ public class CloudCoreInterfaceController {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.GET,
-            value = SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation")
+            value = SecurityConstants.ADM_PREFIX + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation")
     public ResponseEntity getMisdeedsGroupedByFederation(@ApiParam(value = "Headers", required = true) @RequestHeader HttpHeaders httpHeaders,
                                                        @ApiParam(value = "Platform ID") @RequestParam(name = "platformId", required = false) String platformIdFilter,
                                                        @ApiParam(value = "Federation ID") @RequestParam(name = "federationId", required = false) String federationIdFilter) {
@@ -645,7 +645,7 @@ public class CloudCoreInterfaceController {
                 params.put("platformId",platformIdFilter);
             if (federationIdFilter != null)
                 params.put("federationId",federationIdFilter);
-            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation", HttpMethod.GET, entity, String.class, params);
+            ResponseEntity<String> stringResponseEntity = this.restTemplate.exchange(this.admUrl + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + SecurityConstants.ADM_GET_FEDERATED_MISDEEDS + "/byFederation", HttpMethod.GET, entity, String.class, params);
 
             HttpHeaders headers = stripTransferEncoding(stringResponseEntity.getHeaders());
 
