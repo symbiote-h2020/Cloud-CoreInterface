@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatformRequest;
 import eu.h2020.symbiote.communication.RabbitManager;
-import eu.h2020.symbiote.core.cci.AbstractResponseSecured;
-import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
-import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
-import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.*;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
 import eu.h2020.symbiote.core.internal.*;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
@@ -697,6 +694,292 @@ public class CloudCoreInterfaceController {
             log.error("Error in decoding: " + e.getMessage(), e);
         }
         return result;
+    }
+
+    /*--------------*/
+    /*     SSP      */
+    /*--------------*/
+
+    private ResponseEntity handleCoreSdevRequest(CoreSdevRegistryRequest coreSdevRegistryRequest, CoreOperationType coreOperationType) {
+        SdevRegistryResponse response = new SdevRegistryResponse();
+
+        if (coreSdevRegistryRequest == null) {
+            log.error("Error while handling sdev request");
+            response.setMessage("Error while parsing message body. No data has been processed by Core Services.");
+            response.setBody(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        log.debug("Sending request to Core Services: " + coreSdevRegistryRequest.getBody());
+        CoreSdevRegistryResponse coreSdevResponse = null;
+        switch (coreOperationType) {
+            case CREATE:
+                coreSdevResponse = rabbitManager.sendSdevCreationRequest(coreSdevRegistryRequest);
+                break;
+            case MODIFY:
+                coreSdevResponse = rabbitManager.sendSdevModificationRequest(coreSdevRegistryRequest);
+                break;
+            case DELETE:
+                coreSdevResponse = rabbitManager.sendSdevRemovalRequest(coreSdevRegistryRequest);
+                break;
+        }
+
+        //Timeout or exception on our side
+        if (coreSdevResponse == null) {
+            log.debug("Timeout on handling sdev request by Core Services");
+            response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
+            response.setBody(null);
+            response.setStatus(HttpStatus.GATEWAY_TIMEOUT.value());
+            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreSdevResponse), HttpStatus.GATEWAY_TIMEOUT);
+        }
+
+        log.debug("Response from Core Services received: " + coreSdevResponse.getStatus() + ", " + coreSdevResponse.getMessage() + ", " + coreSdevResponse.getBody());
+
+        response.setMessage(coreSdevResponse.getMessage());
+        response.setBody(coreSdevResponse.getBody());
+
+        log.debug("ResourceRegistryResponse created and returned to endpoint");
+
+        return new ResponseEntity<>(response, getHeadersForCoreResponse(coreSdevResponse), HttpStatus.valueOf(coreSdevResponse.getStatus()));
+    }
+
+    private ResponseEntity handleCoreSspResourceRequest(CoreSspResourceRegistryRequest coreSspResourceRegistryRequest, CoreOperationType coreOperationType) {
+        SspResourceReqistryResponse response = new SspResourceReqistryResponse();
+
+        if (coreSspResourceRegistryRequest == null) {
+            log.error("Error while handling ssp resource request");
+            response.setMessage("Error while parsing message body. No data has been processed by Core Services.");
+            response.setBody(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        log.debug("Sending request to Core Services: " + coreSspResourceRegistryRequest.getBody());
+        CoreSspResourceRegistryResponse coreSspResourceResponse = null;
+        switch (coreOperationType) {
+            case CREATE:
+                coreSspResourceResponse  = rabbitManager.sendSspResourceCreationRequest(coreSspResourceRegistryRequest);
+                break;
+            case MODIFY:
+                coreSspResourceResponse  = rabbitManager.sendSspResourceModificationRequest(coreSspResourceRegistryRequest);
+                break;
+            case DELETE:
+                coreSspResourceResponse  = rabbitManager.sendSspResourceRemovalRequest(coreSspResourceRegistryRequest);
+                break;
+        }
+
+        //Timeout or exception on our side
+        if (coreSspResourceResponse  == null) {
+            log.debug("Timeout on handling ssp resource request by Core Services");
+            response.setMessage("Timeout on Core Services side. Operation might have been performed, but response did not arrive on time.");
+            response.setBody(null);
+            response.setStatus(HttpStatus.GATEWAY_TIMEOUT.value());
+            return new ResponseEntity<>(response, getHeadersForCoreResponse(coreSspResourceResponse), HttpStatus.GATEWAY_TIMEOUT);
+        }
+
+        log.debug("Response from Core Services received: " + coreSspResourceResponse.getStatus() + ", " + coreSspResourceResponse.getMessage() + ", " + coreSspResourceResponse.getBody());
+
+        response.setMessage(coreSspResourceResponse.getMessage());
+        response.setBody(coreSspResourceResponse.getBody());
+
+        log.debug("ResourceRegistryResponse created and returned to endpoint");
+
+        return new ResponseEntity<>(response, getHeadersForCoreResponse(coreSspResourceResponse), HttpStatus.valueOf(coreSspResourceResponse.getStatus()));
+    }
+
+
+    /**
+     * Endpoint for creating smart devices.
+     *
+     * @param sdevRegistryRequest TODO
+     * @param httpHeaders         request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Create a smart device",
+            notes = "Create a smart device",
+            response = SdevRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.POST,
+            value = "/ssps/{sspId}/sdevs")
+    public ResponseEntity createSdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of SDev");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSdevRegistryRequest coreRequest = new CoreSdevRegistryRequest(securityRequest, sdevRegistryRequest.getBody(), sspId);
+
+            return handleCoreSdevRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
+    }
+
+    /**
+     * Endpoint for modifying smart devices.
+     *
+     * @param sdevRegistryRequest TODO
+     * @param httpHeaders         request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Modify a smart device",
+            notes = "Modify a smart device",
+            response = SdevRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.PUT,
+            value = "/ssps/{sspId}/sdevs")
+    public ResponseEntity modifySdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of SDev");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSdevRegistryRequest coreRequest = new CoreSdevRegistryRequest(securityRequest, sdevRegistryRequest.getBody(), sspId);
+
+            return handleCoreSdevRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
+    }
+
+    /**
+     * Endpoint for deleting smart devices.
+     *
+     * @param sdevRegistryRequest TODO
+     * @param httpHeaders         request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Delete a smart device",
+            notes = "Delete a smart device",
+            response = SdevRegistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = "/ssps/{sspId}/sdevs")
+    public ResponseEntity deleteSdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+                                     @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of SDev");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSdevRegistryRequest coreRequest = new CoreSdevRegistryRequest(securityRequest, sdevRegistryRequest.getBody(), sspId);
+
+            return handleCoreSdevRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
+    }
+
+    /**
+     * Endpoint for creating SSP resource.
+     *
+     * @param sspResourceRegistryRequest TODO
+     * @param httpHeaders                request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Create an SSP resource",
+            notes = "Create an SSP resource",
+            response = SspResourceReqistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.POST,
+            value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
+    public ResponseEntity createSspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for creation of SSP resource");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSspResourceRegistryRequest coreRequest = new CoreSspResourceRegistryRequest(securityRequest, sspResourceRegistryRequest.getBody(), sspId, sdevId, sspResourceRegistryRequest.getFilteringPolicies());
+
+            return handleCoreSspResourceRequest(coreRequest, CoreOperationType.CREATE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
+    }
+
+    /**
+     * Endpoint for modifying SSP resource.
+     *
+     * @param sspResourceRegistryRequest TODO
+     * @param httpHeaders                request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Modify an SSP resource",
+            notes = "Modify an SSP resource",
+            response = SspResourceReqistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.PUT,
+            value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
+    public ResponseEntity modifySspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for modification of SSP resource");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSspResourceRegistryRequest coreRequest = new CoreSspResourceRegistryRequest(securityRequest, sspResourceRegistryRequest.getBody(), sspId, sdevId, sspResourceRegistryRequest.getFilteringPolicies());
+
+            return handleCoreSspResourceRequest(coreRequest, CoreOperationType.MODIFY);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
+    }
+
+    /**
+     * Endpoint for deleting SSP resource.
+     *
+     * @param sspResourceRegistryRequest TODO
+     * @param httpHeaders                request headers
+     * @return TODO
+     */
+    @ApiOperation(value = "Delete an SSP resource",
+            notes = "Delete an SSP resource",
+            response = SspResourceReqistryResponse.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 500, message = "Error on server side")})
+    @RequestMapping(method = RequestMethod.DELETE,
+            value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
+    public ResponseEntity deleteSspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+                                            @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
+        try {
+            log.debug("Request for removal of SSP resource");
+            if (httpHeaders == null)
+                throw new InvalidArgumentsException();
+            SecurityRequest securityRequest = new SecurityRequest(httpHeaders.toSingleValueMap());
+
+            CoreSspResourceRegistryRequest coreRequest = new CoreSspResourceRegistryRequest(securityRequest, sspResourceRegistryRequest.getBody(), sspId, sdevId, sspResourceRegistryRequest.getFilteringPolicies());
+
+            return handleCoreSspResourceRequest(coreRequest, CoreOperationType.DELETE);
+        } catch (InvalidArgumentsException e) {
+            return handleBadSecurityHeaders(e);
+        }
     }
 
 
