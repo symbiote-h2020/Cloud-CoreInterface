@@ -596,7 +596,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, an SSP Resource object containing assigned ID
      */
     public CoreSspResourceRegistryResponse sendSspResourceCreationRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
-        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
+        return sendRpcSspResourceMessage(this.resourceExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
     }
 
     /**
@@ -606,7 +606,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, an SSP Resource object
      */
     public CoreSspResourceRegistryResponse sendSspResourceModificationRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
-        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceModificationRequestedRoutingKey, coreSspResourceRequest);
+        return sendRpcSspResourceMessage(this.resourceExchangeName, this.sspResourceModificationRequestedRoutingKey, coreSspResourceRequest);
     }
 
     /**
@@ -616,7 +616,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, an SSP Resource object
      */
     public CoreSspResourceRegistryResponse sendSspResourceRemovalRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
-        return sendRpcSspResourceMessage(this.sspExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
+        return sendRpcSspResourceMessage(this.resourceExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
     }
 
     /**
