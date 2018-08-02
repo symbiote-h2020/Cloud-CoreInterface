@@ -616,7 +616,7 @@ public class RabbitManager {
      * @return object containing status of requested operation and, if successful, an SSP Resource object
      */
     public CoreSspResourceRegistryResponse sendSspResourceRemovalRequest(CoreSspResourceRegistryRequest coreSspResourceRequest) {
-        return sendRpcSspResourceMessage(this.resourceExchangeName, this.sspResourceCreationRequestedRoutingKey, coreSspResourceRequest);
+        return sendRpcSspResourceMessage(this.resourceExchangeName, this.sspResourceRemovalRequestedRoutingKey, coreSspResourceRequest);
     }
 
     /**
