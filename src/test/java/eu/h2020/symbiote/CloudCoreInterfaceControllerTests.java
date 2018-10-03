@@ -1,17 +1,14 @@
 package eu.h2020.symbiote;
 
+import eu.h2020.symbiote.cloud.model.ssp.SspRegInfo;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringDevice;
 import eu.h2020.symbiote.cloud.monitoring.model.CloudMonitoringPlatform;
 import eu.h2020.symbiote.cloud.monitoring.model.Metric;
 import eu.h2020.symbiote.communication.RabbitManager;
 import eu.h2020.symbiote.controllers.CloudCoreInterfaceController;
-import eu.h2020.symbiote.core.cci.RDFResourceRegistryRequest;
-import eu.h2020.symbiote.core.cci.ResourceRegistryRequest;
-import eu.h2020.symbiote.core.cci.ResourceRegistryResponse;
+import eu.h2020.symbiote.core.cci.*;
 import eu.h2020.symbiote.core.cci.accessNotificationMessages.NotificationMessage;
-import eu.h2020.symbiote.core.internal.CoreResourceRegistryResponse;
-import eu.h2020.symbiote.core.internal.RDFFormat;
-import eu.h2020.symbiote.core.internal.RDFInfo;
+import eu.h2020.symbiote.core.internal.*;
 import eu.h2020.symbiote.core.internal.cram.NotificationMessageResponseSecured;
 import eu.h2020.symbiote.core.internal.crm.MonitoringResponseSecured;
 import eu.h2020.symbiote.model.cim.FeatureOfInterest;
@@ -28,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -281,7 +279,6 @@ public class CloudCoreInterfaceControllerTests {
                 "\"clientCertificate\":\"clientCertificate\"," +
                 "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
                 "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
-
 
 
         CoreResourceRegistryResponse rabbitResponse = new CoreResourceRegistryResponse();
@@ -797,6 +794,531 @@ public class CloudCoreInterfaceControllerTests {
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNull(response.getBody());
+    }
+
+        /* SSP */
+
+    @Test
+    public void testCreateSdev_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevCreationRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSdev(null, new SdevRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateSdev_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSdev(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testCreateSdev_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSdev(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testCreateSdev_success() {
+        SspRegInfo sspRegInfo = new SspRegInfo();
+
+        SdevRegistryRequest request = new SdevRegistryRequest(sspRegInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSdevRegistryResponse rabbitResponse = new CoreSdevRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(sspRegInfo);
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevCreationRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.createSdev("sspId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testModifySdev_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevModificationRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySdev(null, new SdevRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testModifySdev_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySdev(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testModifySdev_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySdev(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testModifySdev_success() {
+        SspRegInfo sspRegInfo = new SspRegInfo();
+
+        SdevRegistryRequest request = new SdevRegistryRequest(sspRegInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSdevRegistryResponse rabbitResponse = new CoreSdevRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(sspRegInfo);
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevModificationRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.modifySdev("sspId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testDeleteSdev_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevRemovalRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSdev(null, new SdevRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testDeleteSdev_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSdev(null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testDeleteSdev_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSdev(null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testDeleteSdev_success() {
+        SspRegInfo sspRegInfo = new SspRegInfo();
+
+        SdevRegistryRequest request = new SdevRegistryRequest(sspRegInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSdevRegistryResponse rabbitResponse = new CoreSdevRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(sspRegInfo);
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSdevRemovalRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.deleteSdev("sspId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testCreateSsp_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceCreationRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSspResource(null, null, new SspResourceRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateSsp_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSspResource(null, null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testCreateSsp_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.createSspResource(null, null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testCreateSsp_success() {
+        SspResourceRegistryRequest request = new SspResourceRegistryRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSspResourceRegistryResponse rabbitResponse = new CoreSspResourceRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(new HashMap<>());
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceCreationRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.createSspResource("sspId","sdevId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testModifySsp_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceModificationRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySspResource(null, null, new SspResourceRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testModifySsp_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySspResource(null, null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testModifySsp_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.modifySspResource(null, null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testModifySsp_success() {
+        SspResourceRegistryRequest request = new SspResourceRegistryRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSspResourceRegistryResponse rabbitResponse = new CoreSspResourceRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(new HashMap<>());
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceModificationRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.modifySspResource("sspId","sdevId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testDeleteSsp_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceRemovalRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSspResource(null, null, new SspResourceRegistryRequest(), headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testDeleteSsp_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSspResource(null, null, null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testDeleteSsp_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.deleteSspResource(null, null, null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testDeleteSsp_success() {
+        SspResourceRegistryRequest request = new SspResourceRegistryRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CoreSspResourceRegistryResponse rabbitResponse = new CoreSspResourceRegistryResponse();
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody(new HashMap<>());
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendSspResourceRemovalRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.deleteSspResource("sspId","sdevId", request, headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testClearData_timeout() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendClearDataRequest(any())).thenReturn(null);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.clearData("platformId", headers);
+
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testClearData_nullHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.clearData(null, null);
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testClearData_noSecurityHeaders() {
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity<?> response = controller.clearData(null, new HttpHeaders());
+
+        assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
+        ResourceRegistryResponse regResponse = (ResourceRegistryResponse) response.getBody();
+        assertNull(regResponse.getBody());
+    }
+
+    @Test
+    public void testClearData_success() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_TIMESTAMP_HEADER, "1500000000");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_SIZE_HEADER, "1");
+        headers.add(SecurityConstants.SECURITY_CREDENTIALS_HEADER_PREFIX + "1", "{\"token\":\"token\"," +
+                "\"authenticationChallenge\":\"authenticationChallenge\"," +
+                "\"clientCertificate\":\"clientCertificate\"," +
+                "\"clientCertificateSigningAAMCertificate\":\"clientCertificateSigningAAMCertificate\"," +
+                "\"foreignTokenIssuingAAMCertificate\":\"foreignTokenIssuingAAMCertificate\"}");
+
+        ClearDataResponse rabbitResponse = new ClearDataResponse();
+
+        rabbitResponse.setStatus(200);
+        rabbitResponse.setBody("");
+
+
+        RabbitManager rabbitManager = Mockito.mock(RabbitManager.class);
+        when(rabbitManager.sendClearDataRequest(any())).thenReturn(rabbitResponse);
+
+        CloudCoreInterfaceController controller = new CloudCoreInterfaceController(rabbitManager);
+        ResponseEntity response = controller.clearData("platformId", headers);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 
 

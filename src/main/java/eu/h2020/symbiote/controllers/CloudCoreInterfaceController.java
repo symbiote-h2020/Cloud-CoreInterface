@@ -664,20 +664,20 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for creating smart devices.
      *
-     * @param sdevRegistryRequest TODO
+     * @param sdevRegistryRequest request for object describing an sdev
      * @param httpHeaders         request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Create a smart device",
             notes = "Create a smart device",
             response = SdevRegistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = "/ssps/{sspId}/sdevs")
-    public ResponseEntity createSdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+    public ResponseEntity createSdev(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "Request object describing an sdev", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for creation of SDev");
@@ -696,20 +696,20 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for modifying smart devices.
      *
-     * @param sdevRegistryRequest TODO
+     * @param sdevRegistryRequest request for object describing an sdev
      * @param httpHeaders         request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Modify a smart device",
             notes = "Modify a smart device",
             response = SdevRegistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = "/ssps/{sspId}/sdevs")
-    public ResponseEntity modifySdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+    public ResponseEntity modifySdev(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "Request object describing an sdev", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for modification of SDev");
@@ -728,20 +728,20 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for deleting smart devices.
      *
-     * @param sdevRegistryRequest TODO
+     * @param sdevRegistryRequest request for object describing an sdev
      * @param httpHeaders         request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Delete a smart device",
             notes = "Delete a smart device",
             response = SdevRegistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/ssps/{sspId}/sdevs")
-    public ResponseEntity deleteSdev(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                     @ApiParam(value = "TODO", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
+    public ResponseEntity deleteSdev(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                     @ApiParam(value = "Request object describing an sdev", required = true) @RequestBody SdevRegistryRequest sdevRegistryRequest,
                                      @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for removal of SDev");
@@ -760,21 +760,21 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for creating SSP resource.
      *
-     * @param sspResourceRegistryRequest TODO
+     * @param sspResourceRegistryRequest request object describing an ssp resource
      * @param httpHeaders                request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Create an SSP resource",
             notes = "Create an SSP resource",
             response = SspResourceReqistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.POST,
             value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
-    public ResponseEntity createSspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
-                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+    public ResponseEntity createSspResource(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "ID of an sdev", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "Request object describing an ssp resource", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for creation of SSP resource");
@@ -793,21 +793,21 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for modifying SSP resource.
      *
-     * @param sspResourceRegistryRequest TODO
+     * @param sspResourceRegistryRequest request object describing an ssp resource
      * @param httpHeaders                request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Modify an SSP resource",
             notes = "Modify an SSP resource",
             response = SspResourceReqistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.PUT,
             value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
-    public ResponseEntity modifySspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
-                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+    public ResponseEntity modifySspResource(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "ID of an sdev", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "Request object describing an ssp resource", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for modification of SSP resource");
@@ -826,21 +826,21 @@ public class CloudCoreInterfaceController {
     /**
      * Endpoint for deleting SSP resource.
      *
-     * @param sspResourceRegistryRequest TODO
+     * @param sspResourceRegistryRequest request object describing an ssp resource
      * @param httpHeaders                request headers
-     * @return TODO
+     * @return response from Registry component
      */
     @ApiOperation(value = "Delete an SSP resource",
             notes = "Delete an SSP resource",
             response = SspResourceReqistryResponse.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "TODO", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Error on server side")})
     @RequestMapping(method = RequestMethod.DELETE,
             value = "/ssps/{sspId}/sdevs/{sdevId}/resources")
-    public ResponseEntity deleteSspResource(@ApiParam(value = "TODO", required = true) @PathVariable("sspId") String sspId,
-                                            @ApiParam(value = "TODO", required = true) @PathVariable("sdevId") String sdevId,
-                                            @ApiParam(value = "TODO", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
+    public ResponseEntity deleteSspResource(@ApiParam(value = "ID of an SSP", required = true) @PathVariable("sspId") String sspId,
+                                            @ApiParam(value = "ID of an sdev", required = true) @PathVariable("sdevId") String sdevId,
+                                            @ApiParam(value = "Request object describing an ssp resource", required = true) @RequestBody SspResourceRegistryRequest sspResourceRegistryRequest,
                                             @ApiParam(value = "Headers, containing X-Auth-Timestamp, X-Auth-Size and X-Auth-{1..n} fields", required = true) @RequestHeader HttpHeaders httpHeaders) {
         try {
             log.debug("Request for removal of SSP resource");
