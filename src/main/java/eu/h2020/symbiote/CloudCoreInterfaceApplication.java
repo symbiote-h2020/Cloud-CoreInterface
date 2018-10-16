@@ -22,6 +22,8 @@ import org.springframework.stereotype.Component;
 public class CloudCoreInterfaceApplication {
 
     public static void main(String[] args) {
+
+        WaitForPort.waitForServices(WaitForPort.findProperty("SPRING_BOOT_WAIT_FOR_SERVICES"));
         SpringApplication.run(CloudCoreInterfaceApplication.class, args);
     }
 
