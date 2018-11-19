@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -35,6 +37,9 @@ public class RabbitManager {
 
     @Value("${rabbit.password}")
     private String rabbitPassword;
+
+    @Value("${spring.rabbitmq.template.reply-timeout}")
+    private Integer rabbitMessageTimeout;
 
     @Value("${rabbit.exchange.resource.name}")
     private String resourceExchangeName;
@@ -135,6 +140,8 @@ public class RabbitManager {
     private Connection connection;
     private Channel channel;
 
+    private Map<String, Object> queueArgs;
+
     /**
      * Method used to override connection parameters.
      * Used ONLY for unit testing.
@@ -152,6 +159,7 @@ public class RabbitManager {
         this.rabbitHost = rabbitHost;
         this.rabbitUsername = rabbitUsername;
         this.rabbitPassword = rabbitPassword;
+        this.rabbitMessageTimeout = 30000;
 
         this.crmExchangeName = exchangeName;
         this.crmExchangeType = exchangeType;
@@ -185,6 +193,10 @@ public class RabbitManager {
      */
     public void initCommunication() {
         try {
+
+            queueArgs = new HashMap<>();
+            queueArgs.put("x-message-ttl", rabbitMessageTimeout);
+
             ConnectionFactory factory = new ConnectionFactory();
 
             factory.setHost(this.rabbitHost);
@@ -260,7 +272,10 @@ public class RabbitManager {
         try {
             log.debug("Sending message...");
 
-            String replyQueueName = this.channel.queueDeclare().getQueue();
+            String replyQueueName = UUID.randomUUID().toString();
+            this.channel.queueDeclare(replyQueueName, false, true, true, queueArgs);
+//            this.channel.queueDeclare(replyQueueName, false, true, true, null);
+
 
             String correlationId = UUID.randomUUID().toString();
             AMQP.BasicProperties props = new AMQP.BasicProperties()
@@ -359,8 +374,8 @@ public class RabbitManager {
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName        name of the exchange to send message to
-     * @param routingKey          routing key to send message to
+     * @param exchangeName    name of the exchange to send message to
+     * @param routingKey      routing key to send message to
      * @param coreSdevRequest resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
@@ -386,8 +401,8 @@ public class RabbitManager {
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName        name of the exchange to send message to
-     * @param routingKey          routing key to send message to
+     * @param exchangeName           name of the exchange to send message to
+     * @param routingKey             routing key to send message to
      * @param coreSspResourceRequest resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
@@ -413,9 +428,9 @@ public class RabbitManager {
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName        name of the exchange to send message to
-     * @param routingKey          routing key to send message to
-     * @param request resource to be sent
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param request      resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
     public ClearDataResponse sendRpcClearDataMessage(String exchangeName, String routingKey, ClearDataRequest request) {
@@ -440,9 +455,9 @@ public class RabbitManager {
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName        name of the exchange to send message to
-     * @param routingKey          routing key to send message to
-     * @param request             resource to be sent
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param request      resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
     public NotificationMessageResponseSecured sendRpcAccessNotificationMessage(String exchangeName, String routingKey, NotificationMessageSecured request) {
@@ -467,9 +482,9 @@ public class RabbitManager {
     /**
      * Helper method that provides JSON marshalling and unmarshalling for the sake of Rabbit communication.
      *
-     * @param exchangeName        name of the exchange to send message to
-     * @param routingKey          routing key to send message to
-     * @param request             resource to be sent
+     * @param exchangeName name of the exchange to send message to
+     * @param routingKey   routing key to send message to
+     * @param request      resource to be sent
      * @return response from the consumer or null if timeout occurs
      */
     public MonitoringResponseSecured sendRpcMonitoringMessage(String exchangeName, String routingKey,
